@@ -1,7 +1,7 @@
 // QQ 农场挂机 TUI
 // 用法: node tools/tui.mjs [--port 62000] [--gid 1274359435] [--yes]
 import readline from 'node:readline';
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Bridge, PHASE, sleep } from './core.mjs';
 import {
@@ -50,6 +50,24 @@ class Tui {
     this.friends = [];
     this.seedId = opts.seedId || 20002;
     this.autoMonitor = !!opts.monitor;   // 就绪后自动开启挂机
+
+    // 持久化配置（种子选择、名称学习缓存）
+    this.cfgPath = join(opts.logDir || process.cwd(), 'config.json');
+    // 种子静态信息表（游戏配置表解包所得：名称/生长时长/经验）
+    try {
+      this.seedMap = JSON.parse(readFileSync(new URL('./seed-map.json', import.meta.url), 'utf8'));
+    } catch { this.seedMap = {}; }
+    try {
+      const c = JSON.parse(readFileSync(this.cfgPath, 'utf8'));
+      if (c.seedId) this.seedId = Number(c.seedId);
+      this.seedNames = c.seedNames || {};        // 种子ID -> 名称（种下后自动学习）
+      this.seedCatalog = c.seedCatalog || null;  // 商店目录缓存
+      this.buyCount = c.buyCount || 10;          // 单次自动补货数量
+    } catch {
+      this.seedNames = {};
+      this.seedCatalog = null;
+      this.buyCount = 10;
+    }
     this.monitor = false;
     this.monitorTimer = null;
     this.busy = false;
@@ -375,6 +393,9 @@ class Tui {
       this.log(`🌱 种植 ${use.length} 块: ${use.join(',')} (seed ${this.seedId}，余 ${avail})`, 'task');
       const r = await this.b.call(SVC.plant, 'Plant', buildPlant(this.seedId, use, true), 20000);   // auto_slave：副产地自动跟随
       this.log(`✅ 种植成功 ${r.body ? r.body.length : 0}B`, 'ok');
+      // 回填「种子ID -> 作物名」映射，下次 /种子 就能显示名称
+      const nm = await this.learnSeedNames(this.seedId);
+      if (nm) this.log(`📝 已记录：种子 ${this.seedId} = ${nm}`, 'task');
       await this.refresh();
     });
   }
@@ -385,6 +406,75 @@ class Tui {
     const goods = decodeShopReply(r.body);
     this.shopGoods = goods;
     return goods.find(g => g.itemId === this.seedId && g.unlocked) || null;
+  }
+
+  // ---------- 配置持久化 ----------
+  _saveConfig() {
+    try {
+      writeFileSync(this.cfgPath, JSON.stringify({
+        seedId: this.seedId,
+        seedNames: this.seedNames,
+        seedCatalog: this.seedCatalog,
+        buyCount: this.buyCount,
+      }, null, 2));
+    } catch { }
+  }
+
+  // ---------- 种子目录（商店，含价格）----------
+  async loadSeedCatalog(force = false) {
+    if (this.seedCatalog && this.seedCatalog.length && !force) return this.seedCatalog;
+    const r = await this.b.call(SVC.shop, 'ShopInfo', buildShopInfo(SEED_SHOP_ID));
+    const goods = decodeShopReply(r.body);
+    this.seedCatalog = goods.map(g => ({
+      id: g.itemId,
+      price: g.price,
+      count: g.itemCount || 1,
+      limit: g.limitCount || 0,
+      bought: g.boughtNum || 0,
+      unlocked: !!g.unlocked,
+      lv: ((g.conds || []).find(c => c.type === 1) || {}).param || 0,
+    })).sort((a, b) => a.price - b.price);
+    this._saveConfig();
+    return this.seedCatalog;
+  }
+
+  seedName(id) {
+    const m = this.seedMap && this.seedMap[id];
+    return (m && m.name) || this.seedNames[id] || '';
+  }
+
+  // 种子静态信息（名称/生长时长/经验），来自游戏配置表解包
+  seedInfo(id) {
+    return (this.seedMap && this.seedMap[id]) || null;
+  }
+
+  // 种下后从地块反查植物名，回填「种子ID -> 作物名」映射
+  async learnSeedNames(seedId) {
+    try {
+      const r = await this.b.call(SVC.plant, 'AllLands', Buffer.alloc(0));
+      const d = decodeAllLandsReply(r.body);
+      for (const l of d.lands) {
+        if (l.plant && l.plant.id && l.plant.name) {
+          if (seedId && this.seedNames[seedId] !== l.plant.name) {
+            this.seedNames[seedId] = l.plant.name;
+            this._saveConfig();
+            return l.plant.name;
+          }
+        }
+      }
+    } catch { }
+    return null;
+  }
+
+  async bagSeedCount() {
+    try {
+      const r = await this.b.call(SVC.item, 'Bag', Buffer.alloc(0));
+      const bd = decodeBagReply(r.body);
+      const m = {};
+      for (const it of bd.items) m[it.id] = it.count;
+      this.bag = m;
+      return m;
+    } catch { return this.bag || {}; }
   }
 
   async taskBuySeed(num) {
@@ -582,6 +672,8 @@ class Tui {
       '好友': 'where', 'where': 'where', '列表': 'where',
       '状态': 'status', 'status': 'status',
       'gid': 'setgid', '设置gid': 'setgid', '账号': 'setgid',
+      '种子': 'seeds', 'seeds': 'seeds', '种子列表': 'seeds',
+      '选种': 'selectseed', 'selectseed': 'selectseed', '设定种子': 'selectseed',
       '刷新': 'refresh', 'refresh': 'refresh', 'r': 'refresh',
       '退出': 'quit', 'quit': 'quit', 'exit': 'quit', 'q': 'quit',
       '帮助': 'help', 'help': 'help', '?': 'help', '': 'help',
@@ -640,6 +732,40 @@ class Tui {
         } else {
           this.log('用法: /gid <数字>（自己的 gid 可在 /好友 列表里找，注意排除好友）', 'err');
         }
+        break;
+      }
+      case 'seeds': {
+        const cat = await this.loadSeedCatalog(true);
+        const bag = await this.bagSeedCount();
+        const fmtH = (s) => !s ? '?' : (s >= 3600 ? (s / 3600).toFixed(1) + 'h' : (s >= 60 ? Math.round(s / 60) + 'm' : s + 's'));
+        this.log('━━ 可选种子（按单价排序）━━', 'task');
+        this.log('  ID        作物        单价   生长   经验  exp/时  等级  背包  解锁', 'task');
+        for (const s of cat) {
+          if (!s.unlocked && s.id !== this.seedId) continue;
+          const info = this.seedInfo(s.id) || {};
+          const nm = info.name || this.seedName(s.id) || '?';
+          const grow = fmtH(info.growSec);
+          const exp = info.exp !== undefined ? info.exp : '?';
+          const perH = info.growSec ? Math.round((info.exp || 0) * 3600 / info.growSec) : '?';
+          const cur = s.id === this.seedId ? ' ★' : '';
+          this.log(`  ${String(s.id).padEnd(9)} ${cut(nm, 12).padEnd(13)} ${String(s.price).padEnd(6)} ${String(grow).padEnd(6)} ${String(exp).padEnd(5)} ${String(perH).padEnd(7)} ${('lv' + s.lv).padEnd(6)} ${String(bag[s.id] ?? '-').padEnd(6)} ${s.unlocked ? '是' : '否'}${cur}`, 'task');
+        }
+        const g = cat.find(s => s.id === this.seedId);
+        const gi = this.seedInfo(this.seedId) || {};
+        this.log(`当前挂机种子: ${this.seedId} ${gi.name || '?'}（单价 ${g ? g.price : '?'} 金币，生长 ${fmtH(gi.growSec)}，经验 ${gi.exp ?? '?'}）`, 'ok');
+        this.log('切换: /选种 <ID>   ★ = 当前使用', 'task');
+        break;
+      }
+      case 'selectseed': {
+        const n = Number(arg);
+        if (!n) { this.log('用法: /选种 <种子ID>   先用 /种子 查看可选项', 'err'); break; }
+        const cat = await this.loadSeedCatalog();
+        const g = cat.find(s => s.id === n);
+        if (!g) { this.log(`商店里没有种子 ${n}，用 /种子 查看可选项`, 'err'); break; }
+        if (!g.unlocked) { this.log(`种子 ${n} 尚未解锁（需要 lv${g.lv}）`, 'err'); break; }
+        this.seedId = n;
+        this._saveConfig();
+        this.log(`✅ 已设定挂机种子: ${n} ${this.seedName(n) || ''}（单价 ${g.price} 金币）`, 'ok');
         break;
       }
       case 'quit': this.quit = true; break;
