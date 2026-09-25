@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Bridge, PHASE, sleep } from './core.mjs';
 import {
   parse, fields, field, num, str, repeatedInts, decodeAllLandsReply, decodeBagReply,
-  decodeShopReply, decodeBuyReply, decodeFarmingReply,
+  decodeShopReply, decodeBuyReply, decodeFarmingReply, decodePlantInfo,
   buildHarvest, buildPlant, buildPutItem, buildVisitEnter, buildVisitLeave, buildRemovePlant,
   buildBuyGoods, buildShopInfo, buildFarming,
 } from './farm.mjs';
@@ -257,6 +257,11 @@ class Tui {
   async refresh() {
     const rep = await this.b.call(SVC.plant, 'AllLands', Buffer.alloc(0));
     const d = decodeAllLandsReply(rep.body);
+    if (d.empty || !d.lands.length) {
+      // 实测：游戏停在好友农场里时，自家的 AllLands 可能返回 ok 但空 body。
+      // 此时不能当作「没有地」，否则收获/种植会静默什么都不做。
+      this.log(`⚠ AllLands 返回空（bodyLen=${rep.bodyLen ?? 0}）。若正停在好友农场，请先回到自己的农场`, 'err');
+    }
     this.lands = d.lands;
     this.limits = d.limits;
     this.lastRefresh = Date.now();
@@ -650,17 +655,20 @@ class Tui {
   async taskFarmSelf() {
     const rep = await this.b.call(SVC.plant, 'AllLands', Buffer.alloc(0));
     const d = decodeAllLandsReply(rep.body);
+    const nowSec = Math.floor(Date.now() / 1000);
     const cand = [];
     let slaveHit = 0;
     for (const l of d.lands) {
       const p = l.plant;
-      if (!p) continue;
-      if (!(p.weedOwners || []).length && !(p.insectOwners || []).length) continue;
+      if (!p || p.currentPhase === 7) continue;          // 无作物 / 枯死（需铲除，不能务农）
+      // 判定：好友放的草虫(owners) 或 自然到期的旱/草/虫(needCare)
+      const care = p.needCare || (p.weedOwners || []).length > 0 || (p.insectOwners || []).length > 0;
+      if (!care) continue;
       if (l.masterLandId !== 0) { slaveHit++; continue; }   // 副产地不支持单独操作
       cand.push(l.id);
     }
     if (!cand.length) {
-      this.log(`自家务农: 主地无草虫${slaveHit ? `（副产地 ${slaveHit} 块有待处理项，需在主地处理）` : ''}`, 'task');
+      this.log(`自家务农: 主地无需处理${slaveHit ? `（副产地 ${slaveHit} 块有待处理项，需在主地处理）` : ''}`, 'task');
       return 0;
     }
     const r = await this.b.call(SVC.plant, 'Farming', buildFarming(cand, 0, false), 25000);
@@ -681,38 +689,51 @@ class Tui {
       // ② 好友的地。先用好友摘要的 weed_num/insect_num 预筛，避免无谓 Enter。
       //    摘要实测与进农场后的真实数据一致，仅作粗筛，最终仍以 Enter 回包 + 服务端 1001057 为准。
       if (!this.friends.length) await this.refresh();
-      // 排除自己：gid 比对 + hasSummary 双保险（自己的条目没有农场摘要）
-      const targets = this.friends.filter(f => f.gid !== this.gid && f.hasSummary !== false && (f.weed > 0 || f.insect > 0));
-      if (!targets.length) {
-        this.log('务农：好友摘要显示均无草虫', 'task');
-        await this.refresh();
-        return;
-      }
-      this.log(`务农：${targets.length} 个好友有草虫记录`, 'task');
-      let landTotal = 0, okTotal = 0, rewardTotal = 0;
-      for (const f of targets) {
+      // 排除自己：gid 比对 + hasSummary 双保险（自己的条目没有农场摘要）。
+      // 不再用摘要做硬预筛：摘要实测会虚报（某轮标记 7 个有记录，真正有草虫的只有 3 个），
+      // 被预筛掉的好友连日志都不会留下，表现为「明明有得务农却显示无可用」。
+      // 改为扫描全部好友，摘要只作为对照信息打印。
+      const others = this.friends.filter(f => f.gid !== this.gid && f.hasSummary !== false);
+      const flagged = others.filter(f => f.weed > 0 || f.insect > 0);
+      if (!others.length) { this.log('务农：没有可访问的好友', 'task'); await this.refresh(); return; }
+      this.log(`务农：扫描 ${others.length} 个好友农场（摘要标记有草虫 ${flagged.length} 个）`, 'task');
+      let landTotal = 0, okTotal = 0, rewardTotal = 0, scanned = 0, staleSum = 0;
+      for (const f of others) {
         try {
           // 服务端清理结果存在显示延迟：一轮过后可能仍有残留，做最多 3 轮收敛
           let cleared = 0;
+          let firstRoundCand = -1;
           for (let round = 1; round <= 3; round++) {
             const er = await this.b.call(SVC.visit, 'Enter', buildVisitEnter(f.gid));
             const rep = parse(er.body);
             const cand = [];
+            let slaveHit = 0, wCnt = 0, iCnt = 0, dCnt = 0, wOwn = 0, iOwn = 0;
+            const nowV = Math.floor(Date.now() / 1000);
             for (const bs of fields(rep, 2)) {
               const li = parse(bs);
               if (num(li, 2) === 0) continue;        // 未解锁
-              if (num(li, 13) !== 0) continue;       // 副产地不可单独操作
               const pb = fields(li, 10)[0];
               if (!pb) continue;
-              const p = parse(pb);
-              const weedN = repeatedInts(p, 12).length;
-              const insectN = repeatedInts(p, 13).length;
-              if (weedN > 0 || insectN > 0) cand.push(num(li, 1));   // 有草或有虫才需要清理
+              const pi = decodePlantInfo(pb, nowV);
+              if (!pi || pi.currentPhase === 7) continue;   // 枯死作物清不了，需铲除
+              // 判定两类来源：
+              //   ① owners 非空 —— 好友放的草/虫，有明确放置者
+              //   ② needCare  —— 阶段里的旱/草/虫到期时间已过（自然发生，没有 owner）
+              const wO = pi.weedOwners.length > 0, iO = pi.insectOwners.length > 0;
+              if (!wO && !iO && !pi.needCare) continue;
+              if (wO || pi.needWeed) { wCnt++; if (wO) wOwn++; }
+              if (iO || pi.needInsect) { iCnt++; if (iO) iOwn++; }
+              if (pi.needWater) dCnt++;
+              if (num(li, 13) !== 0) { slaveHit++; continue; }   // 副产地不可单独操作
+              cand.push(num(li, 1));
             }
+            if (round === 1 && cand.length) this.log(`   ${f.name}: 候选 ${cand.length} 块（草${wCnt}/好友放${wOwn} 虫${iCnt}/好友放${iOwn} 旱${dCnt}）`, 'task');
+            if (round === 1) { firstRoundCand = cand.length; scanned++; }
             if (!cand.length) {
               await this.b.call(SVC.visit, 'Leave', buildVisitLeave(f.gid)).catch(() => { });
               break;
             }
+            if (slaveHit && round === 1) this.log(`   ${f.name}: 另有 ${slaveHit} 块副产地存在草虫，服务端不支持单独清理`, 'task');
             if (round === 1) landTotal += cand.length;
             let r;
             try {
@@ -733,6 +754,11 @@ class Tui {
             await sleep(300);
           }
           await this.b.call(SVC.visit, 'Leave', buildVisitLeave(f.gid)).catch(() => { });
+          // 摘要虚报对照：摘要说有，进农场却找不到待清项
+          if (firstRoundCand === 0 && (f.weed > 0 || f.insect > 0)) {
+            staleSum++;
+            this.log(`   ${f.name}: 摘要称草${f.weed}虫${f.insect}，进农场无待清项（摘要虚报）`, 'task');
+          }
           await sleep(150);
         } catch (e) {
           const code = e.code || e.gateway?.meta?.err || 0;
@@ -740,7 +766,7 @@ class Tui {
           await this.b.call(SVC.visit, 'Leave', buildVisitLeave(f.gid)).catch(() => { });
         }
       }
-      this.log(`✅ 务农完成: 自家 ${selfN} 块 · 好友 ${okTotal} 条${rewardTotal ? '，奖励合计 ' + rewardTotal : ''}`, 'ok');
+      this.log(`✅ 务农完成: 自家 ${selfN} 块 · 好友 ${okTotal} 条 · 扫过 ${scanned} 个农场${staleSum ? `（摘要虚报 ${staleSum} 个）` : ''}${rewardTotal ? '，奖励合计 ' + rewardTotal : ''}`, 'ok');
       await this.refresh();
     });
   }

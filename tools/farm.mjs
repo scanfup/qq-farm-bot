@@ -102,12 +102,21 @@ export function decodePlantInfo(bs, nowSec) {
   });
   // ★ phases 里同时含「当前阶段」和「未来阶段的预测」，不能取最后一条。
   //   当前阶段 = 最后一个 begin_time <= now 的条目。
-  let cur = 0;
-  for (const ph of phases) if (ph.beginTime > 0 && ph.beginTime <= now) cur = ph.phase;
-  if (!cur && phases.length) cur = phases[0].phase;
+  let curPhaseObj = null;
+  for (const ph of phases) if (ph.beginTime > 0 && ph.beginTime <= now) curPhaseObj = ph;
+  if (!curPhaseObj && phases.length) curPhaseObj = phases[0];
+  const cur = curPhaseObj ? curPhaseObj.phase : 0;
 
   const matureEntry = phases.find(ph => ph.phase === 6);
   const ripeAt = matureEntry ? matureEntry.beginTime : 0;
+
+  // 旱 / 草 / 虫 的到期时间由服务端在阶段里给出（绝对 unix 秒），到点即生效。
+  // ⚠ weed_owners / insect_owners 只记录「谁放的」，自然长出的草虫没有 owner，
+  //   仅凭 owners 判断会漏掉自然发生的旱草虫 —— 这是务农「有得做却报无可用」的原因。
+  const due = (t) => t > 0 && t <= now;
+  const needWater = !!curPhaseObj && due(curPhaseObj.dryTime);
+  const needWeed = !!curPhaseObj && due(curPhaseObj.weedsTime);
+  const needInsect = !!curPhaseObj && due(curPhaseObj.insectTime);
 
   return {
     id: num(pi, 1),
@@ -116,10 +125,16 @@ export function decodePlantInfo(bs, nowSec) {
     lastPhase: cur,
     lastPhaseName: PHASE[cur] || '?',
     currentPhase: cur,
+    curPhaseObj,
     ripeAt,
     isRipe: ripeAt > 0 && ripeAt <= now,
     ripeInSec: ripeAt > now ? ripeAt - now : 0,
-    dryNum: num(pi, 6),
+    needWater,
+    needWeed,
+    needInsect,
+    needCare: needWater || needWeed || needInsect,
+    // 顶层 field 6：语义未确认，实测恒为 0，不要拿它当干旱标记
+    field6: num(pi, 6),
     stoleNum: num(pi, 9),
     fruitId: num(pi, 10),
     fruitNum: num(pi, 11),
@@ -151,6 +166,9 @@ export function decodeLandInfo(bs, nowSec) {
 }
 
 export function decodeAllLandsReply(buf, nowSec) {
+  // 空响应（ok=true 但 body 为空）会拿到 null，parse(null) 会直接抛
+  // "Cannot read properties of null" 把整条挂机循环打死，这里做容错。
+  if (!buf || !buf.length) return { lands: [], limits: [], socialEvents: 0, empty: true };
   const r = parse(buf);
   const lands = fields(r, 1).map(bs => decodeLandInfo(bs, nowSec));
   const limits = fields(r, 2).map(bs => {
@@ -173,6 +191,7 @@ export const isSlaveLand = (land) => !!(land && land.masterLandId !== 0);
 //   ItemBag { repeated Item items=1; capacity=2; used_slots=3 }
 //   Item    { id=1; count=2; expire_time=3; uid=6; is_new=7 }
 export function decodeBagReply(buf) {
+  if (!buf || !buf.length) return { items: [], capacity: 0, usedSlots: 0, empty: true };
   const r = parse(buf);
   const bagBs = field(r, 1);
   if (!bagBs) return { items: [], capacity: 0, usedSlots: 0 };
@@ -249,6 +268,7 @@ export function buildFarming(landIds, hostGid, isHelp = false, socialEventItemId
 
 // FarmingReply { land=1; operation_limits=2; results=3; social_event_rewards=4 }
 export function decodeFarmingReply(buf) {
+  if (!buf || !buf.length) return { results: [], limits: [], landCount: 0, empty: true };
   const r = parse(buf);
   const results = fields(r, 3).map(bs => {
     const x = parse(bs);
@@ -273,6 +293,7 @@ export function buildShopInfo(shopId) {
 // ShopInfoReply { repeated GoodsInfo goods_list = 1 }
 //   GoodsInfo { id=1; bought_num=2; price=3; limit_count=4; unlocked=5; item_id=6; item_count=7; conds=8 }
 export function decodeShopReply(buf) {
+  if (!buf || !buf.length) return [];
   const r = parse(buf);
   return fields(r, 1).map(bs => {
     const g = parse(bs);
@@ -285,6 +306,7 @@ export function decodeShopReply(buf) {
 }
 // BuyGoodsReply { GoodsInfo goods=1; repeated Item get_items=2; repeated Item cost_items=3 }
 export function decodeBuyReply(buf) {
+  if (!buf || !buf.length) return { get: [], cost: [], empty: true };
   const r = parse(buf);
   const rd = (no) => fields(r, no).map(bs => { const it = parse(bs); return { id: num(it, 1), count: num(it, 2) }; });
   return { get: rd(2), cost: rd(3) };
