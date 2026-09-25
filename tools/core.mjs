@@ -300,37 +300,66 @@ export class Bridge {
   }
 
   // ---------- 从心跳解析 gid ----------
-  async detectGid({ waitMs = 30000, onLog = () => { } } = {}) {
+  // 心跳 body 结构：field1=gid(varint), field2=client_version(string, 形如 "1.14.2.13_20260922"), field3=0
+  // 必须严格匹配这个结构 —— 只判断「首字节 0x08」会把访问好友农场的请求
+  // （host_gid=好友）也抓进来，导致把自己认成好友。
+  async detectGid({ waitMs = 60000, onLog = () => { } } = {}) {
     if (this.gid) return this.gid;
     onLog('等待心跳以解析 gid ...');
     await this.evaluate(
       `(function(){
-        globalThis.__gids=[];                       // ★ 每次清空，避免复用上一个账号的缓存
-        if(globalThis.__gidhook) return 'ok';
+        globalThis.__gids=[];
         var t=globalThis.tsdk; if(!t) return 'notsdk';
+        // 若已包装过且标记仍在，无需重复包装
+        if (t._encrypt_data && t._encrypt_data.__isGidHook) return 'ok';
         var H=t.HEAPU8, orig=t._encrypt_data;
-        t._encrypt_data=function(){ try{
-          var p=arguments[0],l=arguments[1];
-          if(typeof p==='number'&&p>0&&l>3&&l<4096&&p+l<=H.length){
+        var hook=function(){ try{
+          var p=arguments[0], l=arguments[1];
+          if(typeof p==='number' && p>0 && l>3 && l<4096 && p+l<=H.length){
             var a=Array.prototype.slice.call(H.slice(p,p+l));
-            if(a[0]===0x08){var s=a.map(function(b){return String.fromCharCode(b);}).join('');
-              if(s.indexOf('1.14.')>0){var v=0,sh=0,i=1;for(;;){var b=a[i++];v|=(b&0x7f)<<sh;sh+=7;if(!(b&0x80))break;}
-                globalThis.__gids.push(v>>>0);}}
+            if(a[0]===0x08){
+              var i=1, gid=0, sh=0, b;
+              for(;;){ b=a[i++]; gid|=(b&0x7f)<<sh; sh+=7; if(!(b&0x80))break; if(i>12)break; }
+              // field2 必须是版本号字符串
+              if(a[i]===0x12){
+                var len=a[i+1], ver='';
+                for(var k=0;k<len && i+2+k<a.length;k++) ver+=String.fromCharCode(a[i+2+k]);
+                if(/^1\\.[0-9]/.test(ver)) globalThis.__gids.push(gid>>>0);
+              }
+            }
           }
         }catch(e){} return orig.apply(this,arguments); };
-        globalThis.__gidhook=1; return 'hooked'; })()`,
+        hook.__isGidHook=true;
+        t._encrypt_data=hook;
+        return 'hooked'; })()`,
       { timeoutMs: 10000 },
     );
+
     const deadline = Date.now() + waitMs;
+    let lastSeen = null;
     while (Date.now() < deadline) {
       await sleep(1000);
       try {
-        const raw = await this.evaluate(`(globalThis.__gids&&globalThis.__gids.length)?String(globalThis.__gids[globalThis.__gids.length-1]):''`, { timeoutMs: 8000 });
+        const raw = await this.evaluate(
+          `(globalThis.__gids&&globalThis.__gids.length)?String(globalThis.__gids[globalThis.__gids.length-1]):''`,
+          { timeoutMs: 8000 },
+        );
         const n = Number(raw);
-        if (n > 0) { this.gid = n; onLog('gid = ' + n); return n; }
+        if (n > 0) {
+          this.gid = n;
+          onLog('gid = ' + n);
+          return n;
+        }
+        // 每秒汇报一次进度，避免用户以为卡死
+        const el = Math.round((Date.now() - (deadline - waitMs)) / 1000);
+        if (el % 10 === 0 && el !== lastSeen) { lastSeen = el; onLog(`等待心跳中... ${el}s`); }
       } catch { /* 继续等 */ }
     }
-    throw new Error('未能在 ' + Math.round(waitMs / 1000) + 's 内解析出 gid');
+    throw new Error(
+      `未能在 ${Math.round(waitMs / 1000)}s 内解析出 gid。\n` +
+      `  可能原因：游戏刚重连、心跳尚未开始，或游戏已停止。\n` +
+      `  可手动指定：在 TUI 里执行 /刷新 重试，或启动时加 --gid <你的gid>（可用 /好友 查看）`,
+    );
   }
 }
 

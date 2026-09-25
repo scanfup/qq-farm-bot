@@ -507,6 +507,7 @@ class Tui {
       '挂机': 'monitor', 'monitor': 'monitor', 'm': 'monitor',
       '好友': 'where', 'where': 'where', '列表': 'where',
       '状态': 'status', 'status': 'status',
+      'gid': 'setgid', '设置gid': 'setgid', '账号': 'setgid',
       '刷新': 'refresh', 'refresh': 'refresh', 'r': 'refresh',
       '退出': 'quit', 'quit': 'quit', 'exit': 'quit', 'q': 'quit',
       '帮助': 'help', 'help': 'help', '?': 'help', '': 'help',
@@ -550,6 +551,21 @@ class Tui {
       case 'status': {
         const p = await this.b.ping().catch(e => ({ ok: false, reason: e.message }));
         this.log('桥接: ' + JSON.stringify(p.ok ? p.status : p), 'task');
+        if (!this.gid) {
+          this.log('gid 尚未解析。可点 /好友 找到自己的 gid，然后用 /gid <数字> 设置', 'task');
+        }
+        break;
+      }
+      case 'setgid': {
+        const n = Number(arg);
+        if (n > 0 && Number.isFinite(n)) {
+          this.gid = n;
+          this.b.gid = n;
+          this.log(`✅ 已设置 gid = ${n}`, 'ok');
+          await this.refresh().catch(() => { });
+        } else {
+          this.log('用法: /gid <数字>（自己的 gid 可在 /好友 列表里找，注意排除好友）', 'err');
+        }
         break;
       }
       case 'quit': this.quit = true; break;
@@ -644,8 +660,14 @@ class Tui {
       this.log('[🔑] 登录态已就绪，随时可挂机（[m] 或 /挂机）', 'ok');
       if (this.autoMonitor) { this.log('--monitor：自动开启挂机', 'ok'); this.toggleMonitor(); }
     } catch (e) {
-      this.log('初始化失败: ' + e.message, 'err');
-      this.log('按 r 重试，或检查游戏/调试端口', 'err');
+      this.log('⚠️ 初始化未完成: ' + e.message, 'err');
+      if (/gid/.test(e.message)) {
+        this.log('👉 界面仍可使用。点 /好友 看列表，再用 /gid <你自己的gid> 手动设置', 'task');
+        this.log('👉 收获/种植只依赖桥接，不依赖 gid，可直接按 [m] 挂机', 'task');
+      } else {
+        this.log('👉 按 [r] 重试；仍失败请检查游戏是否在运行、调试端口是否已开启', 'task');
+      }
+      this.log('👉 退出：按 [q] 或 Ctrl+C', 'task');
     }
 
     // 周期心跳
