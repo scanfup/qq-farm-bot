@@ -8,7 +8,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40001,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1120,
+  "unlockLv": 38
  },
  "20002": {
   "seed": 20002,
@@ -19,7 +21,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40002,
-  "fruitCount": 5
+  "fruitCount": 5,
+  "price": 1,
+  "unlockLv": 1
  },
  "20003": {
   "seed": 20003,
@@ -30,7 +34,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40003,
-  "fruitCount": 10
+  "fruitCount": 10,
+  "price": 2,
+  "unlockLv": 2
  },
  "20004": {
   "seed": 20004,
@@ -41,7 +47,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40004,
-  "fruitCount": 40
+  "fruitCount": 40,
+  "price": 84,
+  "unlockLv": 8
  },
  "20005": {
   "seed": 20005,
@@ -52,7 +60,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40005,
-  "fruitCount": 60
+  "fruitCount": 60,
+  "price": 134,
+  "unlockLv": 10
  },
  "20006": {
   "seed": 20006,
@@ -63,7 +73,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40006,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 576,
+  "unlockLv": 14
  },
  "20007": {
   "seed": 20007,
@@ -74,7 +86,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40007,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 640,
+  "unlockLv": 18
  },
  "20008": {
   "seed": 20008,
@@ -85,7 +99,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40008,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 704,
+  "unlockLv": 22
  },
  "20009": {
   "seed": 20009,
@@ -96,7 +112,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40009,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 888,
+  "unlockLv": 30
  },
  "20010": {
   "seed": 20010,
@@ -107,7 +125,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40010,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 992,
+  "unlockLv": 34
  },
  "20011": {
   "seed": 20011,
@@ -118,7 +138,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40011,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1680,
+  "unlockLv": 39
  },
  "20013": {
   "seed": 20013,
@@ -129,7 +151,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40013,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1728,
+  "unlockLv": 54
  },
  "20014": {
   "seed": 20014,
@@ -140,7 +164,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40014,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1400,
+  "unlockLv": 46
  },
  "20015": {
   "seed": 20015,
@@ -151,7 +177,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40015,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4200,
+  "unlockLv": 48
  },
  "20018": {
   "seed": 20018,
@@ -162,7 +190,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40018,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1560,
+  "unlockLv": 50
  },
  "20019": {
   "seed": 20019,
@@ -173,7 +203,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40019,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4680,
+  "unlockLv": 52
  },
  "20022": {
   "seed": 20022,
@@ -184,7 +216,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40022,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 14040,
+  "unlockLv": 138
  },
  "20023": {
   "seed": 20023,
@@ -195,7 +229,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40023,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1920,
+  "unlockLv": 58
  },
  "20025": {
   "seed": 20025,
@@ -206,7 +242,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40025,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 1000,
+  "unlockLv": 200
  },
  "20026": {
   "seed": 20026,
@@ -217,7 +255,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40026,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5760,
+  "unlockLv": 60
  },
  "20027": {
   "seed": 20027,
@@ -228,7 +268,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40027,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3168,
+  "unlockLv": 62
  },
  "20029": {
   "seed": 20029,
@@ -239,7 +281,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40029,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1746,
+  "unlockLv": 65
  },
  "20031": {
   "seed": 20031,
@@ -250,7 +294,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40031,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 10476,
+  "unlockLv": 68
  },
  "20033": {
   "seed": 20033,
@@ -261,7 +307,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40033,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 11484,
+  "unlockLv": 72
  },
  "20034": {
   "seed": 20034,
@@ -272,7 +320,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40034,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4176,
+  "unlockLv": 74
  },
  "20035": {
   "seed": 20035,
@@ -283,7 +333,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40035,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 12528,
+  "unlockLv": 76
  },
  "20036": {
   "seed": 20036,
@@ -294,7 +346,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40036,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4752,
+  "unlockLv": 63
  },
  "20037": {
   "seed": 20037,
@@ -305,7 +359,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40037,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1056,
+  "unlockLv": 23
  },
  "20038": {
   "seed": 20038,
@@ -316,7 +372,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40038,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4560,
+  "unlockLv": 78
  },
  "20039": {
   "seed": 20039,
@@ -327,7 +385,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40039,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2472,
+  "unlockLv": 81
  },
  "20041": {
   "seed": 20041,
@@ -338,7 +398,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40041,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2112,
+  "unlockLv": 24
  },
  "20042": {
   "seed": 20042,
@@ -349,7 +411,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40042,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 14832,
+  "unlockLv": 84
  },
  "20043": {
   "seed": 20043,
@@ -360,7 +424,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40043,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 9504,
+  "unlockLv": 64
  },
  "20044": {
   "seed": 20044,
@@ -371,7 +437,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40044,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2592,
+  "unlockLv": 55
  },
  "20045": {
   "seed": 20045,
@@ -382,7 +450,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40045,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1914,
+  "unlockLv": 69
  },
  "20046": {
   "seed": 20046,
@@ -393,7 +463,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40046,
-  "fruitCount": 96
+  "fruitCount": 96,
+  "price": 12000,
+  "unlockLv": 200
  },
  "20047": {
   "seed": 20047,
@@ -404,7 +476,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40047,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2340,
+  "unlockLv": 51
  },
  "20048": {
   "seed": 20048,
@@ -415,7 +489,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40048,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5364,
+  "unlockLv": 86
  },
  "20049": {
   "seed": 20049,
@@ -426,7 +502,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40049,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3492,
+  "unlockLv": 66
  },
  "20050": {
   "seed": 20050,
@@ -437,7 +515,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40050,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1584,
+  "unlockLv": 61
  },
  "20051": {
   "seed": 20051,
@@ -448,7 +528,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40051,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 864,
+  "unlockLv": 15
  },
  "20052": {
   "seed": 20052,
@@ -459,7 +541,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40052,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5238,
+  "unlockLv": 67
  },
  "20053": {
   "seed": 20053,
@@ -470,7 +554,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40053,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 6840,
+  "unlockLv": 79
  },
  "20054": {
   "seed": 20054,
@@ -481,7 +567,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40054,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3828,
+  "unlockLv": 70
  },
  "20055": {
   "seed": 20055,
@@ -492,7 +580,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40055,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2088,
+  "unlockLv": 73
  },
  "20056": {
   "seed": 20056,
@@ -503,7 +593,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40056,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4944,
+  "unlockLv": 82
  },
  "20057": {
   "seed": 20057,
@@ -514,7 +606,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40057,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2682,
+  "unlockLv": 85
  },
  "20058": {
   "seed": 20058,
@@ -525,7 +619,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40058,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 8046,
+  "unlockLv": 87
  },
  "20059": {
   "seed": 20059,
@@ -536,7 +632,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40059,
-  "fruitCount": 20
+  "fruitCount": 20,
+  "price": 5,
+  "unlockLv": 3
  },
  "20060": {
   "seed": 20060,
@@ -547,7 +645,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40060,
-  "fruitCount": 30
+  "fruitCount": 30,
+  "price": 42,
+  "unlockLv": 6
  },
  "20061": {
   "seed": 20061,
@@ -558,7 +658,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40061,
-  "fruitCount": 40
+  "fruitCount": 40,
+  "price": 63,
+  "unlockLv": 7
  },
  "20062": {
   "seed": 20062,
@@ -569,7 +671,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40062,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3360,
+  "unlockLv": 40
  },
  "20063": {
   "seed": 20063,
@@ -580,7 +684,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40063,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 9360,
+  "unlockLv": 95
  },
  "20064": {
   "seed": 20064,
@@ -591,7 +697,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40064,
-  "fruitCount": 30
+  "fruitCount": 30,
+  "price": 21,
+  "unlockLv": 5
  },
  "20065": {
   "seed": 20065,
@@ -602,7 +710,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40065,
-  "fruitCount": 20
+  "fruitCount": 20,
+  "price": 10,
+  "unlockLv": 4
  },
  "20066": {
   "seed": 20066,
@@ -613,7 +723,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40066,
-  "fruitCount": 60
+  "fruitCount": 60,
+  "price": 111,
+  "unlockLv": 9
  },
  "20067": {
   "seed": 20067,
@@ -624,7 +736,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40067,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2280,
+  "unlockLv": 77
  },
  "20068": {
   "seed": 20068,
@@ -635,7 +749,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40068,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3360,
+  "unlockLv": 97
  },
  "20069": {
   "seed": 20069,
@@ -646,7 +762,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40069,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 7200,
+  "unlockLv": 104
  },
  "20070": {
   "seed": 20070,
@@ -657,7 +775,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40070,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2100,
+  "unlockLv": 47
  },
  "20071": {
   "seed": 20071,
@@ -668,7 +788,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40071,
-  "fruitCount": 80
+  "fruitCount": 80,
+  "price": 167,
+  "unlockLv": 11
  },
  "20072": {
   "seed": 20072,
@@ -679,7 +801,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40072,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5184,
+  "unlockLv": 56
  },
  "20073": {
   "seed": 20073,
@@ -690,7 +814,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40073,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 560,
+  "unlockLv": 37
  },
  "20074": {
   "seed": 20074,
@@ -701,7 +827,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40074,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 20160,
+  "unlockLv": 100
  },
  "20075": {
   "seed": 20075,
@@ -712,7 +840,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40075,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 7416,
+  "unlockLv": 83
  },
  "20076": {
   "seed": 20076,
@@ -723,7 +853,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40076,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 17388,
+  "unlockLv": 92
  },
  "20077": {
   "seed": 20077,
@@ -734,7 +866,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40077,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5796,
+  "unlockLv": 90
  },
  "20078": {
   "seed": 20078,
@@ -745,7 +879,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40078,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 10080,
+  "unlockLv": 99
  },
  "20079": {
   "seed": 20079,
@@ -756,7 +892,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40079,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 16092,
+  "unlockLv": 88
  },
  "20080": {
   "seed": 20080,
@@ -767,7 +905,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40080,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 13680,
+  "unlockLv": 80
  },
  "20083": {
   "seed": 20083,
@@ -778,7 +918,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40083,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3600,
+  "unlockLv": 102
  },
  "20084": {
   "seed": 20084,
@@ -789,7 +931,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40084,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 10800,
+  "unlockLv": 106
  },
  "20085": {
   "seed": 20085,
@@ -800,7 +944,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40085,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3858,
+  "unlockLv": 110
  },
  "20086": {
   "seed": 20086,
@@ -811,7 +957,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40086,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 11574,
+  "unlockLv": 114
  },
  "20087": {
   "seed": 20087,
@@ -822,7 +970,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40087,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4122,
+  "unlockLv": 118
  },
  "20088": {
   "seed": 20088,
@@ -833,7 +983,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40088,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 12366,
+  "unlockLv": 122
  },
  "20089": {
   "seed": 20089,
@@ -844,7 +996,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40089,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4392,
+  "unlockLv": 126
  },
  "20090": {
   "seed": 20090,
@@ -855,7 +1009,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40090,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 13176,
+  "unlockLv": 130
  },
  "20091": {
   "seed": 20091,
@@ -866,7 +1022,23 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40091,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2976,
+  "unlockLv": 36
+ },
+ "20092": {
+  "seed": 20092,
+  "plantId": null,
+  "name": "稀世琉璃果",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 200,
+  "price": 12000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20095": {
   "seed": 20095,
@@ -877,7 +1049,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40095,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2880,
+  "unlockLv": 59
  },
  "20096": {
   "seed": 20096,
@@ -888,7 +1062,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40096,
-  "fruitCount": 80
+  "fruitCount": 80,
+  "price": 201,
+  "unlockLv": 12
  },
  "20097": {
   "seed": 20097,
@@ -899,7 +1075,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40097,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1332,
+  "unlockLv": 31
  },
  "20098": {
   "seed": 20098,
@@ -910,7 +1088,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40098,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 960,
+  "unlockLv": 19
  },
  "20099": {
   "seed": 20099,
@@ -921,7 +1101,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40099,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 288,
+  "unlockLv": 13
  },
  "20100": {
   "seed": 20100,
@@ -932,7 +1114,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40100,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 780,
+  "unlockLv": 49
  },
  "20101": {
   "seed": 20101,
@@ -943,7 +1127,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40101,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 14904,
+  "unlockLv": 146
  },
  "20102": {
   "seed": 20102,
@@ -954,7 +1140,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40102,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 29808,
+  "unlockLv": 148
  },
  "20103": {
   "seed": 20103,
@@ -965,7 +1153,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40103,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 496,
+  "unlockLv": 33
  },
  "20104": {
   "seed": 20104,
@@ -976,7 +1166,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40104,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 624,
+  "unlockLv": 41
  },
  "20105": {
   "seed": 20105,
@@ -987,7 +1179,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40105,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 352,
+  "unlockLv": 21
  },
  "20106": {
   "seed": 20106,
@@ -998,7 +1192,23 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40106,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 9936,
+  "unlockLv": 144
+ },
+ "20107": {
+  "seed": 20107,
+  "plantId": null,
+  "name": "仙人掌",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 101,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20108": {
   "seed": 20108,
@@ -1009,7 +1219,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40108,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20109": {
   "seed": 20109,
@@ -1020,7 +1232,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40109,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 1000,
+  "unlockLv": 200
  },
  "20110": {
   "seed": 20110,
@@ -1031,7 +1245,23 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40110,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 792,
+  "unlockLv": 26
+ },
+ "20111": {
+  "seed": 20111,
+  "plantId": null,
+  "name": "粉玫瑰",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 41,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20112": {
   "seed": 20112,
@@ -1042,7 +1272,23 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40112,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 1000,
+  "unlockLv": 200
+ },
+ "20114": {
+  "seed": 20114,
+  "plantId": null,
+  "name": "蓝玫瑰",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 81,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20115": {
   "seed": 20115,
@@ -1053,7 +1299,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40115,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 31644,
+  "unlockLv": 156
  },
  "20116": {
   "seed": 20116,
@@ -1064,7 +1312,23 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40116,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3120,
+  "unlockLv": 93
+ },
+ "20118": {
+  "seed": 20118,
+  "plantId": null,
+  "name": "水仙花",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 61,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20120": {
   "seed": 20120,
@@ -1075,7 +1339,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40120,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1728,
+  "unlockLv": 16
  },
  "20121": {
   "seed": 20121,
@@ -1086,7 +1352,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40121,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 1000,
+  "unlockLv": 200
  },
  "20122": {
   "seed": 20122,
@@ -1097,7 +1365,23 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40122,
-  "fruitCount": 32
+  "fruitCount": 32,
+  "price": 1000,
+  "unlockLv": 21
+ },
+ "20123": {
+  "seed": 20123,
+  "plantId": null,
+  "name": "海棠花",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 101,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20124": {
   "seed": 20124,
@@ -1108,7 +1392,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40124,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 15822,
+  "unlockLv": 154
  },
  "20126": {
   "seed": 20126,
@@ -1119,7 +1405,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40126,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 6240,
+  "unlockLv": 94
  },
  "20128": {
   "seed": 20128,
@@ -1130,7 +1418,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40128,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 864,
+  "unlockLv": 53
  },
  "20129": {
   "seed": 20129,
@@ -1141,7 +1431,23 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40129,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
+ },
+ "20130": {
+  "seed": 20130,
+  "plantId": null,
+  "name": "琼花",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 101,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20131": {
   "seed": 20131,
@@ -1152,7 +1458,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40131,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 11172,
+  "unlockLv": 160
  },
  "20132": {
   "seed": 20132,
@@ -1163,7 +1471,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40132,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 16758,
+  "unlockLv": 162
  },
  "20133": {
   "seed": 20133,
@@ -1174,7 +1484,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40133,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20134": {
   "seed": 20134,
@@ -1185,7 +1497,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40134,
-  "fruitCount": 32
+  "fruitCount": 32,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20135": {
   "seed": 20135,
@@ -1196,7 +1510,23 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40135,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1248,
+  "unlockLv": 42
+ },
+ "20136": {
+  "seed": 20136,
+  "plantId": null,
+  "name": "毛蟹爪莲",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 41,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20139": {
   "seed": 20139,
@@ -1207,7 +1537,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40139,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20140": {
   "seed": 20140,
@@ -1218,7 +1550,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40140,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20141": {
   "seed": 20141,
@@ -1229,7 +1563,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40141,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1872,
+  "unlockLv": 43
  },
  "20142": {
   "seed": 20142,
@@ -1240,7 +1576,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40142,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 3744,
+  "unlockLv": 44
  },
  "20143": {
   "seed": 20143,
@@ -1251,7 +1589,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40143,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1188,
+  "unlockLv": 27
  },
  "20144": {
   "seed": 20144,
@@ -1262,7 +1602,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40144,
-  "fruitCount": 12
+  "fruitCount": 12,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20145": {
   "seed": 20145,
@@ -1273,7 +1615,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40145,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 700,
+  "unlockLv": 45
  },
  "20147": {
   "seed": 20147,
@@ -1284,7 +1628,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40147,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2376,
+  "unlockLv": 28
  },
  "20154": {
   "seed": 20154,
@@ -1295,7 +1641,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40154,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20161": {
   "seed": 20161,
@@ -1306,7 +1654,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40161,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 396,
+  "unlockLv": 25
  },
  "20162": {
   "seed": 20162,
@@ -1317,7 +1667,23 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40162,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 444,
+  "unlockLv": 29
+ },
+ "20165": {
+  "seed": 20165,
+  "plantId": null,
+  "name": "茱萸",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 101,
+  "price": 1000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20167": {
   "seed": 20167,
@@ -1328,7 +1694,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40167,
-  "fruitCount": 32
+  "fruitCount": 32,
+  "price": 2898,
+  "unlockLv": 21
  },
  "20172": {
   "seed": 20172,
@@ -1339,7 +1707,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40172,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 33516,
+  "unlockLv": 164
  },
  "20174": {
   "seed": 20174,
@@ -1350,7 +1720,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40174,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4680,
+  "unlockLv": 134
  },
  "20176": {
   "seed": 20176,
@@ -1361,7 +1733,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40176,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20182": {
   "seed": 20182,
@@ -1372,7 +1746,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40182,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5274,
+  "unlockLv": 150
  },
  "20184": {
   "seed": 20184,
@@ -1383,7 +1759,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40184,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20185": {
   "seed": 20185,
@@ -1394,7 +1772,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40185,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20186": {
   "seed": 20186,
@@ -1405,7 +1785,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40186,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20187": {
   "seed": 20187,
@@ -1416,7 +1798,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40187,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5586,
+  "unlockLv": 158
  },
  "20188": {
   "seed": 20188,
@@ -1427,7 +1811,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40188,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 4968,
+  "unlockLv": 142
  },
  "20193": {
   "seed": 20193,
@@ -1438,7 +1824,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40193,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20199": {
   "seed": 20199,
@@ -1449,7 +1837,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40199,
-  "fruitCount": 12
+  "fruitCount": 12,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20201": {
   "seed": 20201,
@@ -1460,7 +1850,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40201,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 24732,
+  "unlockLv": 124
  },
  "20202": {
   "seed": 20202,
@@ -1471,7 +1863,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40202,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 8784,
+  "unlockLv": 128
  },
  "20204": {
   "seed": 20204,
@@ -1482,7 +1876,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40204,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 9360,
+  "unlockLv": 136
  },
  "20218": {
   "seed": 20218,
@@ -1493,7 +1889,23 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40218,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2898,
+  "unlockLv": 89
+ },
+ "20219": {
+  "seed": 20219,
+  "plantId": null,
+  "name": "路易十四",
+  "growSec": null,
+  "exp": null,
+  "lv": null,
+  "unlockLv": 200,
+  "price": 12000,
+  "seasons": null,
+  "fruitId": null,
+  "fruitCount": null,
+  "fromItemInfoOnly": true
  },
  "20220": {
   "seed": 20220,
@@ -1504,7 +1916,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40220,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 8694,
+  "unlockLv": 91
  },
  "20221": {
   "seed": 20221,
@@ -1515,7 +1929,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40221,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 18720,
+  "unlockLv": 96
  },
  "20222": {
   "seed": 20222,
@@ -1526,7 +1942,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40222,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 6720,
+  "unlockLv": 98
  },
  "20223": {
   "seed": 20223,
@@ -1537,7 +1955,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40223,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20224": {
   "seed": 20224,
@@ -1548,7 +1968,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40224,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 2000,
+  "unlockLv": 201
  },
  "20225": {
   "seed": 20225,
@@ -1559,7 +1981,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40225,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 10548,
+  "unlockLv": 152
  },
  "20226": {
   "seed": 20226,
@@ -1570,7 +1994,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40226,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 21600,
+  "unlockLv": 108
  },
  "20227": {
   "seed": 20227,
@@ -1581,7 +2007,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40227,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 7716,
+  "unlockLv": 112
  },
  "20228": {
   "seed": 20228,
@@ -1592,7 +2020,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40228,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 23148,
+  "unlockLv": 116
  },
  "20229": {
   "seed": 20229,
@@ -1603,7 +2033,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40229,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 26352,
+  "unlockLv": 132
  },
  "20235": {
   "seed": 20235,
@@ -1614,7 +2046,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40235,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 8244,
+  "unlockLv": 120
  },
  "20242": {
   "seed": 20242,
@@ -1625,7 +2059,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40242,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 28080,
+  "unlockLv": 140
  },
  "20243": {
   "seed": 20243,
@@ -1636,7 +2072,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40243,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20249": {
   "seed": 20249,
@@ -1647,7 +2085,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40249,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 2000,
+  "unlockLv": 201
  },
  "20251": {
   "seed": 20251,
@@ -1658,7 +2098,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40251,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20256": {
   "seed": 20256,
@@ -1669,7 +2111,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40256,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20257": {
   "seed": 20257,
@@ -1680,7 +2124,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40257,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20258": {
   "seed": 20258,
@@ -1691,7 +2137,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40258,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20259": {
   "seed": 20259,
@@ -1702,7 +2150,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40259,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 320,
+  "unlockLv": 17
  },
  "20261": {
   "seed": 20261,
@@ -1713,7 +2163,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40261,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20262": {
   "seed": 20262,
@@ -1724,7 +2176,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40262,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20263": {
   "seed": 20263,
@@ -1735,7 +2189,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40263,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20264": {
   "seed": 20264,
@@ -1746,7 +2202,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40264,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20267": {
   "seed": 20267,
@@ -1757,7 +2215,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40267,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20269": {
   "seed": 20269,
@@ -1768,7 +2228,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40269,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20304": {
   "seed": 20304,
@@ -1779,7 +2241,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40304,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 81
  },
  "20305": {
   "seed": 20305,
@@ -1790,7 +2254,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40305,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1920,
+  "unlockLv": 20
  },
  "20306": {
   "seed": 20306,
@@ -1801,7 +2267,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40306,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 2664,
+  "unlockLv": 32
  },
  "20308": {
   "seed": 20308,
@@ -1812,7 +2280,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40308,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 1488,
+  "unlockLv": 35
  },
  "20329": {
   "seed": 20329,
@@ -1823,7 +2293,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40329,
-  "fruitCount": 1
+  "fruitCount": 1,
+  "price": 400,
+  "unlockLv": 30
  },
  "20375": {
   "seed": 20375,
@@ -1834,7 +2306,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40375,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20396": {
   "seed": 20396,
@@ -1845,7 +2319,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40396,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 960,
+  "unlockLv": 57
  },
  "20413": {
   "seed": 20413,
@@ -1856,7 +2332,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40413,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 6264,
+  "unlockLv": 75
  },
  "20416": {
   "seed": 20416,
@@ -1867,7 +2345,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 49002,
-  "fruitCount": 10
+  "fruitCount": 10,
+  "price": 12000,
+  "unlockLv": 200
  },
  "20435": {
   "seed": 20435,
@@ -1878,7 +2358,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40435,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20442": {
   "seed": 20442,
@@ -1889,7 +2371,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 40442,
-  "fruitCount": 200
+  "fruitCount": 200,
+  "price": 5742,
+  "unlockLv": 71
  },
  "20516": {
   "seed": 20516,
@@ -1900,7 +2384,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40516,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "20522": {
   "seed": 20522,
@@ -1911,7 +2397,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40522,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20523": {
   "seed": 20523,
@@ -1922,7 +2410,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40523,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "20883": {
   "seed": 20883,
@@ -1933,7 +2423,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40883,
-  "fruitCount": 32
+  "fruitCount": 32,
+  "price": 1000,
+  "unlockLv": 21
  },
  "21032": {
   "seed": 21032,
@@ -1944,7 +2436,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41032,
-  "fruitCount": 192
+  "fruitCount": 192,
+  "price": 12000,
+  "unlockLv": 200
  },
  "21037": {
   "seed": 21037,
@@ -1955,7 +2449,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41037,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21038": {
   "seed": 21038,
@@ -1966,7 +2462,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41038,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21044": {
   "seed": 21044,
@@ -1977,7 +2475,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41044,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21050": {
   "seed": 21050,
@@ -1988,7 +2488,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41050,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21072": {
   "seed": 21072,
@@ -1999,7 +2501,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41072,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21134": {
   "seed": 21134,
@@ -2010,7 +2514,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41134,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21135": {
   "seed": 21135,
@@ -2021,7 +2527,9 @@
   "lv": 1,
   "seasons": 2,
   "fruitId": 41135,
-  "fruitCount": 24
+  "fruitCount": 24,
+  "price": 1000,
+  "unlockLv": 200
  },
  "21221": {
   "seed": 21221,
@@ -2032,7 +2540,8 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41221,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "unlockLv": 21
  },
  "21251": {
   "seed": 21251,
@@ -2043,7 +2552,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41251,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "21353": {
   "seed": 21353,
@@ -2054,7 +2565,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41353,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21380": {
   "seed": 21380,
@@ -2065,7 +2578,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41380,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21404": {
   "seed": 21404,
@@ -2076,7 +2591,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41404,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21474": {
   "seed": 21474,
@@ -2087,7 +2604,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41474,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "21542": {
   "seed": 21542,
@@ -2098,7 +2617,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41542,
-  "fruitCount": 20
+  "fruitCount": 20,
+  "price": 400,
+  "unlockLv": 30
  },
  "21625": {
   "seed": 21625,
@@ -2109,7 +2630,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 41625,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "25995": {
   "seed": 25995,
@@ -2120,7 +2643,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 45995,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "26030": {
   "seed": 26030,
@@ -2131,7 +2656,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 46030,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "26032": {
   "seed": 26032,
@@ -2142,7 +2669,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 46032,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 1000,
+  "unlockLv": 21
  },
  "26127": {
   "seed": 26127,
@@ -2153,7 +2682,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 46127,
-  "fruitCount": 48
+  "fruitCount": 48,
+  "price": 2000,
+  "unlockLv": 41
  },
  "29003": {
   "seed": 29003,
@@ -2164,7 +2695,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 49003,
-  "fruitCount": 192
+  "fruitCount": 192,
+  "price": 12000,
+  "unlockLv": 200
  },
  "29004": {
   "seed": 29004,
@@ -2175,7 +2708,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 49004,
-  "fruitCount": 192
+  "fruitCount": 192,
+  "price": 12000,
+  "unlockLv": 200
  },
  "29998": {
   "seed": 29998,
@@ -2186,7 +2721,9 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40416,
-  "fruitCount": 50
+  "fruitCount": 50,
+  "price": 28080,
+  "unlockLv": 31
  },
  "29999": {
   "seed": 29999,
@@ -2197,6 +2734,7 @@
   "lv": 1,
   "seasons": 1,
   "fruitId": 40002,
-  "fruitCount": 5
+  "fruitCount": 5,
+  "unlockLv": 1
  }
 }
