@@ -737,23 +737,61 @@ class Tui {
       case 'seeds': {
         const cat = await this.loadSeedCatalog(true);
         const bag = await this.bagSeedCount();
+        const shopMap = new Map(cat.map(s => [s.id, s]));
         const fmtH = (s) => !s ? '?' : (s >= 3600 ? (s / 3600).toFixed(1) + 'h' : (s >= 60 ? Math.round(s / 60) + 'm' : s + 's'));
-        this.log('━━ 可选种子（按单价排序）━━', 'task');
-        this.log('  ID        作物        单价   生长   经验  exp/时  等级  背包  解锁', 'task');
-        for (const s of cat) {
-          if (!s.unlocked && s.id !== this.seedId) continue;
-          const info = this.seedInfo(s.id) || {};
-          const nm = info.name || this.seedName(s.id) || '?';
+
+        // 候选来源：① 商店（含未解锁，带价格） ② 背包持有  ③ 配置表全量
+        // 默认列出配置表全部 200 个（含非卖品如狗尾草）；「常用」只列商店已解锁 + 背包持有
+        const kw = String(arg || '').trim();
+        const commonOnly = kw === '常用' || kw.toLowerCase() === 'common';
+        let ids;
+        if (commonOnly) {
+          ids = [...new Set([
+            ...cat.filter(s => s.unlocked).map(s => s.id),
+            ...Object.keys(bag).map(Number).filter(id => this.seedMap[id]),
+          ])];
+        } else if (kw) {
+          // 按名称或 ID 搜索
+          ids = Object.keys(this.seedMap).map(Number).filter(id => {
+            const nm = this.seedMap[id].name || '';
+            return nm.includes(kw) || String(id).includes(kw);
+          });
+        } else {
+          ids = Object.keys(this.seedMap).map(Number);
+        }
+        ids.sort((a, b) => {
+          const sa = shopMap.get(a), sb = shopMap.get(b);
+          if (!!sa !== !!sb) return sa ? -1 : 1;          // 商店货优先
+          if (sa && sb) return sa.price - sb.price || a - b;
+          return a - b;
+        });
+
+        const title = commonOnly ? '（常用）' : kw ? `（匹配「${kw}」）` : '（全部）';
+        this.log(`━━ 可选种子${title} 共 ${ids.length} 个 ━━`, 'task');
+        this.log('  ' + pad('ID', 9) + pad('作物', 15) + pad('单价', 8) + pad('生长', 7) + pad('经验', 6) + pad('exp/时', 8) + pad('等级', 7) + pad('背包', 6) + '来源', 'task');
+        for (const id of ids) {
+          const info = this.seedInfo(id) || {};
+          const s = shopMap.get(id);
+          const has = bag[id];
+          const nm = info.name || '?';
           const grow = fmtH(info.growSec);
           const exp = info.exp !== undefined ? info.exp : '?';
           const perH = info.growSec ? Math.round((info.exp || 0) * 3600 / info.growSec) : '?';
-          const cur = s.id === this.seedId ? ' ★' : '';
-          this.log(`  ${String(s.id).padEnd(9)} ${cut(nm, 12).padEnd(13)} ${String(s.price).padEnd(6)} ${String(grow).padEnd(6)} ${String(exp).padEnd(5)} ${String(perH).padEnd(7)} ${('lv' + s.lv).padEnd(6)} ${String(bag[s.id] ?? '-').padEnd(6)} ${s.unlocked ? '是' : '否'}${cur}`, 'task');
+          const price = s ? String(s.price) : '—';
+          const lv = s ? ('lv' + s.lv) : '—';
+          const src = s ? (s.unlocked ? '商店' : '商店未解锁') : (has ? '背包/活动' : '配置表');
+          const cur = id === this.seedId ? '  ★当前' : '';
+          this.log('  ' + pad(id, 9) + pad(cut(nm, 14), 15) + pad(price, 8) + pad(grow, 7) + pad(exp, 6) + pad(perH, 8) + pad(lv, 7) + pad(has ?? '-', 6) + src + cur, 'task');
         }
-        const g = cat.find(s => s.id === this.seedId);
         const gi = this.seedInfo(this.seedId) || {};
-        this.log(`当前挂机种子: ${this.seedId} ${gi.name || '?'}（单价 ${g ? g.price : '?'} 金币，生长 ${fmtH(gi.growSec)}，经验 ${gi.exp ?? '?'}）`, 'ok');
-        this.log('切换: /选种 <ID>   ★ = 当前使用', 'task');
+        const gs = shopMap.get(this.seedId);
+        const nShop = ids.filter(id => shopMap.has(id)).length;
+        this.log(`统计: 商店在售 ${nShop} 个，非卖品（活动/任务/奖励获得）${ids.length - nShop} 个`, 'task');
+        this.log(`当前挂机种子: ${this.seedId} ${gi.name || '?'}（${gs ? '单价 ' + gs.price + ' 金币，' : '非卖品，'}生长 ${fmtH(gi.growSec)}，经验 ${gi.exp ?? '?'}）`, 'ok');
+        this.log('用法: /种子         列出全部（含非卖品）', 'task');
+        this.log('      /种子 常用    仅商店已解锁 + 背包持有', 'task');
+        this.log('      /种子 狗尾    按名称或 ID 搜索', 'task');
+        this.log('      /选种 <ID>    切换挂机种子  ★当前 = 正在使用', 'task');
         break;
       }
       case 'selectseed': {
