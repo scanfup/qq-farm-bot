@@ -261,6 +261,10 @@ class Tui {
     this.limits = d.limits;
     this.lastRefresh = Date.now();
 
+    // 自己的草虫只能从 AllLands 读 —— 自己的农场摘要下发给客户端时不含草虫字段
+    this.selfWeed = d.lands.filter(l => l.plant && (l.plant.weedOwners || []).length).map(l => l.id);
+    this.selfInsect = d.lands.filter(l => l.plant && (l.plant.insectOwners || []).length).map(l => l.id);
+
     const fr = await this.b.call(SVC.friend, 'GetAll', Buffer.alloc(0));
     const r = parse(fr.body);
     this.friends = fields(r, 1).map(bs => {
@@ -271,8 +275,27 @@ class Tui {
         const p = parse(pl);
         stealable = num(p, 6); weed = num(p, 8); insect = num(p, 9);
       }
-      return { gid: num(f, 1), name: str(f, 3), level: num(f, 6), weed, insect, stealable };
+      return {
+        gid: num(f, 1), name: str(f, 3), level: num(f, 6),
+        weed, insect, stealable,
+        hasSummary: pl !== undefined,   // f9 农场摘要：自己那条没有
+      };
     });
+
+    // 自身识别校正。
+    // 心跳 hook 匹配的是「gid + 版本号字符串」，而访问好友农场时的请求也带这个组合，
+    // 所以在好友农场里启动/刷新时，会把访客目标（好友）的 gid 当成登录账号，
+    // 后果是自己被当好友、真正的自己反而被排除。好友列表中唯一没有农场摘要(f9)
+    // 的那条才是自己 —— 自己不需要看自己的草虫/可偷状态。
+    const noSum = this.friends.filter(f => !f.hasSummary);
+    if (noSum.length === 1 && noSum[0].gid !== this.gid) {
+      const prev = this.gid;
+      this.gid = noSum[0].gid;
+      this.b.gid = this.gid;
+      this.log(`🔑 身份校正: ${prev} → ${this.gid}（${noSum[0].name}）`, 'err');
+      this.log(`    ${prev} 是当前正在访问的好友，不是登录账号`, 'err');
+    }
+
     // 从好友列表里认出自己，取昵称与等级
     const me = this.friends.find(f => f.gid === this.gid);
     if (me) this.acct = { name: me.name, level: me.level };
@@ -537,7 +560,7 @@ class Tui {
       if (!this.friends.length) await this.refresh();
       // 偷菜以好友摘要的 steal_plant_num 作为门控（服务端算好的权威可偷数），
       // Visit 回包里的 PlantInfo.stealable 是作物品种属性，恒为 true，不能用来判断。
-      let targets = this.friends.filter(f => f.gid !== this.gid && (mode === 'steal' ? f.stealable > 0 : true));
+      let targets = this.friends.filter(f => f.gid !== this.gid && f.hasSummary !== false && (mode === 'steal' ? f.stealable > 0 : true));
       if (onlyGid) targets = targets.filter(f => f.gid === Number(onlyGid));
       if (!targets.length) { this.log(`${label}：没有可操作的好友（均无可偷/无目标）`, 'task'); return; }
 
@@ -621,14 +644,50 @@ class Tui {
   }
 
   // 一键务农：帮好友清除地块上的草与虫（与撒虫撒草「放置」互补）
+  // 自家务农：清理自己地块上的草与虫。
+  // 与帮好友务农是同一个 Farming 接口，只差场景字段 field_4（0=自家，2=帮好友）。
+  // 数据源用 AllLands 而不是 visit.Enter —— 自己不需要进访客模式。
+  async taskFarmSelf() {
+    const rep = await this.b.call(SVC.plant, 'AllLands', Buffer.alloc(0));
+    const d = decodeAllLandsReply(rep.body);
+    const cand = [];
+    let slaveHit = 0;
+    for (const l of d.lands) {
+      const p = l.plant;
+      if (!p) continue;
+      if (!(p.weedOwners || []).length && !(p.insectOwners || []).length) continue;
+      if (l.masterLandId !== 0) { slaveHit++; continue; }   // 副产地不支持单独操作
+      cand.push(l.id);
+    }
+    if (!cand.length) {
+      this.log(`自家务农: 主地无草虫${slaveHit ? `（副产地 ${slaveHit} 块有待处理项，需在主地处理）` : ''}`, 'task');
+      return 0;
+    }
+    const r = await this.b.call(SVC.plant, 'Farming', buildFarming(cand, 0, false), 25000);
+    const dr = decodeFarmingReply(r.body);
+    const got = dr.results.reduce((s, x) => s + (x.reward ? (x.reward.count || 0) : 0), 0);
+    this.log(`🧹 自家务农: 清理 ${dr.results.length}/${cand.length} 块（${dr.results.map(x => '地' + x.landId).join(' ')}）${got ? ` 得 ${got}` : ''}`, 'ok');
+    return dr.results.length;
+  }
+
   // Farming 支持一次提交多块地，比 PutInsects/PutWeeds 逐块发高效得多。
   async taskFarming() {
-    await this.guard('一键务农（帮好友清理草虫）', async () => {
+    await this.guard('一键务农（自家 + 好友）', async () => {
+      // ① 自己的地。
+      //    原先 targets 用 f.gid !== this.gid 过滤，自己的地永远进不了处理列表，
+      //    日志里也就从不出现自己的草虫 —— 这正是「地里有虫但日志说无虫」的来源。
+      const selfN = await this.taskFarmSelf().catch(e => { this.log('自家务农失败: ' + e.message, 'err'); return 0; }) || 0;
+
+      // ② 好友的地。先用好友摘要的 weed_num/insect_num 预筛，避免无谓 Enter。
+      //    摘要实测与进农场后的真实数据一致，仅作粗筛，最终仍以 Enter 回包 + 服务端 1001057 为准。
       if (!this.friends.length) await this.refresh();
-      // 先用好友摘要的 weed_num/insect_num 预筛，避免对没有草虫的好友做无谓 Enter。
-      // 注意摘要可能滞后，因此仅作粗筛，真实判定仍以 Enter 回包 + 服务端 1001057 为准。
-      const targets = this.friends.filter(f => f.gid !== this.gid && (f.weed > 0 || f.insect > 0));
-      if (!targets.length) { this.log('务农：好友摘要显示均无草虫，跳过', 'task'); return; }
+      // 排除自己：gid 比对 + hasSummary 双保险（自己的条目没有农场摘要）
+      const targets = this.friends.filter(f => f.gid !== this.gid && f.hasSummary !== false && (f.weed > 0 || f.insect > 0));
+      if (!targets.length) {
+        this.log('务农：好友摘要显示均无草虫', 'task');
+        await this.refresh();
+        return;
+      }
       this.log(`务农：${targets.length} 个好友有草虫记录`, 'task');
       let landTotal = 0, okTotal = 0, rewardTotal = 0;
       for (const f of targets) {
@@ -681,7 +740,7 @@ class Tui {
           await this.b.call(SVC.visit, 'Leave', buildVisitLeave(f.gid)).catch(() => { });
         }
       }
-      this.log(`✅ 务农完成: 清理 ${okTotal} 条${rewardTotal ? '，奖励合计 ' + rewardTotal : ''}`, 'ok');
+      this.log(`✅ 务农完成: 自家 ${selfN} 块 · 好友 ${okTotal} 条${rewardTotal ? '，奖励合计 ' + rewardTotal : ''}`, 'ok');
       await this.refresh();
     });
   }
@@ -724,7 +783,7 @@ class Tui {
         this.log('  /收获            收取成熟作物', 'task');
         this.log('  /种植 [种子ID]    自动补种空地（种子不足会自动购买）', 'task');
         this.log('  /偷菜 [gid]       偷取好友成熟果实（省略=全部好友）', 'task');
-        this.log('  /务农            帮好友清除杂草与虫（有奖励，额度无限）', 'task');
+        this.log('  /务农            清自家地块草虫 + 帮好友清理（有奖励，额度无限）', 'task');
         this.log('【种子管理｜只从背包选】', 'ok');
         this.log('  /种子            列出背包里的种子（★ = 当前使用）', 'task');
         this.log('  /种子 狗尾       在背包里按名称或 ID 搜索', 'task');
@@ -761,6 +820,8 @@ class Tui {
       case 'refresh': await this.guard('刷新', async () => { await this.b.ensure({ onLog: m => this.log(m) }); await this.refresh(); this.log('已刷新', 'ok'); }); break;
       case 'where':
         await this.refresh();
+        // 先报自己的地：自己的草虫不在好友摘要里，来自 AllLands
+        this.log(`  ${this.acct?.name || '自己'}  ← 自己  ${this.selfWeed.length ? `草@地${this.selfWeed.join(',')}` : '草无'}  ${this.selfInsect.length ? `虫@地${this.selfInsect.join(',')}` : '虫无'}`, 'ok');
         for (const f of this.friends) if (f.gid !== this.gid) this.log(`  ${f.name}  gid=${f.gid}  草${f.weed} 虫${f.insect} 偷${f.stealable}`, 'task');
         break;
       case 'status': {

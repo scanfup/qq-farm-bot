@@ -303,6 +303,12 @@ export class Bridge {
   // 心跳 body 结构：field1=gid(varint), field2=client_version(string, 形如 "1.14.2.13_20260922"), field3=0
   // 必须严格匹配这个结构 —— 只判断「首字节 0x08」会把访问好友农场的请求
   // （host_gid=好友）也抓进来，导致把自己认成好友。
+  //
+  // ⚠ 即便严格匹配，这个 gid 也未必是登录账号：访问好友农场时的请求同样带
+  //   「gid + 版本号字符串」。实测站好友「小夏缘」的农场里启动，解析出的是
+  //   小夏缘的 gid，而登录账号是 shilin。
+  //   调用方必须用 Tui.refresh() 的「唯一没有 f9 农场摘要的好友条目」做校正，
+  //   本方法只负责等心跳、给候选值，不作为身份的唯一来源。
   async detectGid({ waitMs = 60000, onLog = () => { } } = {}) {
     if (this.gid) return this.gid;
     onLog('等待心跳以解析 gid ...');
