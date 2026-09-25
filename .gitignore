@@ -1,0 +1,25 @@
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+*.log
+
+# 运行时产生的本地文件
+out/
+*.har
+*.jsonl
+
+# 账号与凭据（切勿提交）
+.env
+.env.*
+config/accounts.json
+*.token
+*.pem
+*.key
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
