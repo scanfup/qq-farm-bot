@@ -1,6 +1,8 @@
 // QQ 农场挂机 TUI
 // 用法: node tools/tui.mjs [--port 62000] [--gid 1274359435] [--yes]
 import readline from 'node:readline';
+import { createWriteStream, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { Bridge, PHASE, sleep } from './core.mjs';
 import {
   parse, fields, field, num, str, repeatedInts, decodeAllLandsReply, decodeBagReply,
@@ -60,34 +62,96 @@ class Tui {
     this.cmdMode = false;      // / 指令输入模式
     this.cmdBuf = '';
     this.cmdHistory = [];
+
+    // 运行日志文件：独立于终端，即使 TUI 卡住或崩溃也能留下记录
+    try {
+      const dir = opts.logDir || join(process.cwd(), 'logs');
+      mkdirSync(dir, { recursive: true });
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      this.logPath = join(dir, `run-${stamp}.log`);
+      this.logStream = createWriteStream(this.logPath, { flags: 'a' });
+      const header = [
+        '# QQ 农场挂机运行日志',
+        `# 开始时间: ${new Date().toLocaleString()}`,
+        `# 端口: ${bridge.port}  gid: ${opts.gid || '(自动探测)'}  种子: ${opts.seedId || 20002}`,
+        `# Node: ${process.version}  平台: ${process.platform}`,
+        '',
+      ].join('\n');
+      this.logStream.write(header + '\n');
+    } catch (e) {
+      this.logPath = null;
+      this.logStream = null;
+    }
+    // 确保进程异常退出时日志不丢
+    const flushLog = () => { try { this.logStream && this.logStream.end(); } catch { } };
+    process.once('exit', flushLog);
+    process.once('SIGINT', () => { flushLog(); process.exit(0); });
+    process.once('uncaughtException', (err) => {
+      try { this.logStream && this.logStream.write(`[FATAL] ${err && err.stack || err}\n`); } catch { }
+      flushLog();
+      console.error('未捕获异常:', err);
+      process.exit(1);
+    });
   }
 
   log(msg, kind = 'info') {
-    this.logs.push({ t: now(), m: String(msg), kind });
+    const entry = { t: now(), m: String(msg), kind };
+    this.logs.push(entry);
     if (this.logs.length > 200) this.logs.shift();
+
+    // ① 始终落盘 —— 独立 IO，不依赖终端，TUI 卡死也能留下完整记录
+    if (this.logStream) {
+      try { this.logStream.write(`[${entry.t}] ${String(kind).padEnd(4)} ${entry.m}\n`); } catch { }
+    }
+
+    // ② 无界面模式：直接打 stdout
     if (this.headless) {
       const tag = kind === 'err' ? 'ERR ' : kind === 'ok' ? 'OK  ' : kind === 'task' ? '..  ' : '    ';
-      console.log(`[${now()}] ${tag}${msg}`);
+      console.log(`[${entry.t}] ${tag}${entry.m}`);
       return;
     }
-    // 交互模式：立即刷新屏幕，让挂机动作实时可见（100ms 节流，避免狂刷）
-    if (!this._started) return;
-    const t = Date.now();
-    if (t - (this._lastRender || 0) > 100) {
-      this._lastRender = t;
+
+    // ③ 交互模式：合并密集日志后再重绘（避免刷爆终端缓冲）
+    this._scheduleRender();
+  }
+
+  // 固定节流重绘：密集日志合并成一次，且终端背压时暂停
+  _scheduleRender() {
+    if (!this._started || this.quit) return;
+    if (this._renderTimer) return;
+    this._renderTimer = setTimeout(() => {
+      this._renderTimer = null;
       this.render();
-    } else if (!this._renderPending) {
-      this._renderPending = true;
-      setTimeout(() => {
-        this._renderPending = false;
-        this._lastRender = Date.now();
-        if (this._started && !this.quit) this.render();
-      }, 100);
-    }
+    }, 150);
   }
 
   // ---------- 渲染 ----------
   render() {
+    // 防重入 + 终端背压保护：写缓冲满时跳过重绘，避免阻塞事件循环导致键盘失灵
+    if (this._rendering) return;
+    if (this._paused && Date.now() < (this._pausedUntil || 0)) return;
+    this._rendering = true;
+    let frame = '';
+    try {
+      frame = this._buildFrame();
+    } catch (e) {
+      this._rendering = false;
+      return;
+    }
+    this._rendering = false;
+    if (!frame) return;
+    try {
+      const ok = process.stdout.write(frame);
+      if (!ok) {
+        // 内核缓冲区已满：等 drain 再恢复，期间不再重绘
+        this._paused = true;
+        this._pausedUntil = Date.now() + 1000;
+        process.stdout.once('drain', () => { this._paused = false; this._pausedUntil = 0; });
+      }
+    } catch { /* 终端已关闭 */ }
+  }
+
+  _buildFrame() {
     const W = this.w, H = this.h;
     const out = [];
     const line = (s = '') => out.push(cut(s, W - 2).padEnd(W - 2));
@@ -132,7 +196,7 @@ class Tui {
     }
     if (this.busy) line(`${C.info}${this.busy}${C.rst}`);
 
-    process.stdout.write('\x1b[H' + out.map(l => l).join('\n') + '\x1b[J');
+    return '\x1b[H' + out.map(l => l).join('\n') + '\x1b[J';
   }
 
   renderFarm(w) {
@@ -231,9 +295,27 @@ class Tui {
       const ripe = d.lands.filter(l => l.unlocked && l.masterLandId === 0 && l.plant && l.plant.id && l.plant.isRipe).map(l => l.id);
       if (!ripe.length) { this.log('没有成熟地块', 'task'); return; }
       this.log(`🌾 收获 ${ripe.length} 块: ${ripe.join(',')}`, 'task');
-      const r = await this.b.call(SVC.plant, 'Harvest', buildHarvest(ripe, this.gid, true));
-      const lim = fields(parse(r.body), 4).map(bs => { const l = parse(bs); return `id${num(l, 1)}:${num(l, 2)}`; });
-      this.log(`✅ 收获成功 ${r.body.length}B ${lim.join(' ')}`, 'ok');
+      try {
+        const r = await this.b.call(SVC.plant, 'Harvest', buildHarvest(ripe, this.gid, true));
+        const lim = fields(parse(r.body), 4).map(bs => { const l = parse(bs); return `id${num(l, 1)}:${num(l, 2)}`; });
+        this.log(`✅ 收获成功 ${r.body.length}B ${lim.join(' ')}`, 'ok');
+        this._stuckLands = [];
+      } catch (e) {
+        const code = e.code || 0;
+        if (code === 1001021) {
+          // 服务端判定未成熟。实测存在一种特殊地块：phases 只剩一条已过期的 MATURE，
+          // 此时 Harvest 报 1001021、RemovePlant 又报 1001060（作物已成熟不可铲除），
+          // 两种操作互斥 —— 属于服务端侧的状态，脚本无法处理，记录后跳过即可。
+          // 常见成因：该作物被人偷过（stole_num>0 / stealers 非空）。
+          const key = ripe.join(',');
+          if (this._stuckLands !== key) {
+            this._stuckLands = key;
+            this.log(`⚠️ 地 ${key} 服务端判定暂不可收获（1001021），本轮跳过；若持续存在请到游戏内查看`, 'err');
+          }
+        } else {
+          throw e;
+        }
+      }
       await this.refresh();
     });
   }
@@ -701,12 +783,15 @@ class Tui {
 // ---------- 启动引导 ----------
 function parseArgs() {
   const a = process.argv.slice(2);
-  const o = { port: Number(process.env.CDP_PORT || 62000), gid: Number(process.env.MY_GID || 0) || null, seedId: 20002, yes: false, once: false, monitor: false };
+  const o = { port: Number(process.env.CDP_PORT || 62000), gid: Number(process.env.MY_GID || 0) || null, seedId: 20002, yes: false, once: false, daemon: false, monitor: false, logDir: null, interval: 60000 };
   for (let i = 0; i < a.length; i++) {
     if (a[i] === '--port') o.port = Number(a[++i]);
     else if (a[i] === '--gid') o.gid = Number(a[++i]);
     else if (a[i] === '--seed') o.seedId = Number(a[++i]);
     else if (a[i] === '--once') o.once = true;
+    else if (a[i] === '--daemon') o.daemon = true;
+    else if (a[i] === '--log-dir') o.logDir = a[++i];
+    else if (a[i] === '--interval') o.interval = Number(a[++i]) * 1000;
     else if (a[i] === '--monitor' || a[i] === '-m') o.monitor = true;
     else if (a[i] === '--yes' || a[i] === '-y') o.yes = true;
   }
@@ -731,8 +816,39 @@ const IS_MAIN = process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith(
 if (IS_MAIN) {
   const opts = parseArgs();
 
-  // ---- 无界面模式：跑一轮全套任务后退出（适合做定时任务）----
-  if (opts.once) {
+  // ---- 守护模式：不接管终端，只写日志，适合长时间无人值守 ----
+  // 相比 TUI 交互模式，它不重绘屏幕，因此不存在终端背压导致的卡死风险。
+  if (opts.daemon) {
+    const b = new Bridge({ port: opts.port, gid: opts.gid });
+    const t = new Tui(b, { ...opts, headless: true });
+    let ok = false;
+    try {
+      console.log(`QQ 农场挂机 · 守护模式   端口 ${opts.port}   间隔 ${opts.interval / 1000}s`);
+      await b.ensure({ onLog: (m) => t.log(m) });
+      t.log(`[🔌] 桥接就绪 ctx=${b.ctxId}`, 'ok');
+      if (!t.gid) t.gid = await b.detectGid({ onLog: (m) => t.log(m) });
+      await t.refresh();
+      t.log(`[🔑] 账号 ${t.acct?.name || '?'} (lv${t.acct?.level ?? '?'}) gid=${t.gid} 土地=${t.lands.length} 好友=${t.friends.length}`, 'ok');
+      t.log(`[📄] 日志文件: ${t.logPath || '(未启用)'}`, 'ok');
+      t.log('守护模式运行中，Ctrl+C 退出', 'ok');
+      ok = true;
+
+      const cycle = async () => {
+        if (t.busy) return;
+        await t.taskAll();
+        const mains = t.lands.filter(l => l.unlocked && l.masterLandId === 0);
+        t.log(`[⏱] 本轮结束，下一轮 ${opts.interval / 1000}s 后（主地 ${mains.length} 成熟 ${mains.filter(l => l.plant?.isRipe).length} 空地 ${mains.filter(l => !l.plant?.id).length}）`, 'task');
+      };
+      await cycle();
+      setInterval(cycle, opts.interval);
+    } catch (e) {
+      t.log('守护模式启动失败: ' + e.message, 'err');
+      try { t.logStream && t.logStream.end(); } catch { }
+      console.log(`\n日志已写入: ${t.logPath || '(未启用)'}`);
+      process.exit(1);
+    }
+    // 保持进程存活
+  } else if (opts.once) {
     const b = new Bridge({ port: opts.port, gid: opts.gid });
     const t = new Tui(b, { ...opts, headless: true });
     let code = 0;
