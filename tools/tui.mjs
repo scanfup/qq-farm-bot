@@ -288,7 +288,7 @@ class Tui {
       if (!ripe.length) { this.log('没有成熟地块', 'task'); return; }
       this.log(`🌾 收获 ${ripe.length} 块: ${ripe.join(',')}`, 'task');
       try {
-        const r = await this.b.call(SVC.plant, 'Harvest', buildHarvest(ripe, this.gid, true));
+        const r = await this.b.call(SVC.plant, 'Harvest', buildHarvest(ripe));   // 自家收获不传 host_gid
         const lim = fields(parse(r.body), 4).map(bs => { const l = parse(bs); return `id${num(l, 1)}:${num(l, 2)}`; });
         this.log(`✅ 收获成功 ${r.body.length}B ${lim.join(' ')}`, 'ok');
         this._stuckLands = [];
@@ -462,7 +462,7 @@ class Tui {
           const pick = cand.slice(0, perFriend).map(x => x.id);
           landTotal += pick.length;
           if (mode === 'steal') {
-            const r = await this.b.call(SVC.plant, 'Harvest', buildHarvest(pick, f.gid, true));
+            const r = await this.b.call(SVC.plant, 'Harvest', buildHarvest(pick, f.gid, true));   // 偷菜：必须带好友 host_gid
             okTotal += pick.length;
             this.log(`🥕 偷 ${f.name} ${pick.length}块 → ${r.body ? r.body.length : 0}B`, 'ok');
           } else {

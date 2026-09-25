@@ -186,12 +186,16 @@ export function decodeBagReply(buf) {
 
 // ==================== 请求构造 ====================
 // HarvestRequest { land_ids=1(repeated), host_gid=2, is_all=3 }
-export function buildHarvest(landIds, hostGid, isAll = true) {
-  return encCat(
-    landIds.length ? wPackedInts(1, landIds) : Buffer.alloc(0),
-    wVarint(2, hostGid),
-    wVarint(3, isAll ? 1 : 0),
-  );
+// ★ 实测关键：收获「自家」作物时不能带 host_gid。
+//   带上 host_gid（哪怕是自己的 gid 或 0）会让服务端按访客/偷菜路径校验，
+//   把正常成熟的地块判为 1001021「作物未成熟」甚至 1001022「作物已枯萎」。
+//   自家收获只传 land_ids 即可；偷菜（收好友的）才需要 host_gid。
+export function buildHarvest(landIds, hostGid = 0, isAll = false) {
+  const parts = [];
+  if (landIds.length) parts.push(wPackedInts(1, landIds));
+  if (hostGid) parts.push(wVarint(2, hostGid));   // 仅偷菜时编码
+  if (isAll) parts.push(wVarint(3, 1));           // 自家收获不编码该字段
+  return encCat(...parts);
 }
 
 // PlantRequest { repeated PlantItem items = 2 }
