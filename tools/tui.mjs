@@ -49,6 +49,7 @@ class Tui {
     this.limits = [];
     this.friends = [];
     this.seedId = opts.seedId || 20002;
+    this._starveId = 0;                  // 缺种提示抑制：同一 ID 只提示一次
     this.autoMonitor = !!opts.monitor;   // 就绪后自动开启挂机
 
     // 持久化配置（种子选择、名称学习缓存）
@@ -369,24 +370,39 @@ class Tui {
       catch (e) { this.log('查背包失败: ' + e.message, 'err'); return; }
 
       // 种子不足 → 自动购买（金币足够时）
+      // 买不到（非卖品 / 未解锁）时只在首次提示，避免每轮刷屏
       if (avail < targets.length) {
         const need = targets.length - avail;
-        this.log(`💰 种子不足（背包 ${avail}/需 ${targets.length}），自动购买 ${need} 个`, 'task');
-        try {
-          const g = await this.findSeedGoods();
-          if (!g) { this.log(`种子商店无 ${this.seedId} 或无购买权限`, 'err'); }
-          else {
+        const g = await this.findSeedGoods().catch(() => null);
+        if (!g) {
+          if (this._starveId !== this.seedId) {
+            this._starveId = this.seedId;
+            const info = this.seedInfo(this.seedId) || {};
+            this.log(`⚠ 种子 ${this.seedId} ${info.name || ''} 无法补购（不在商店或未解锁）`, 'err');
+            this.log(`   背包余 ${avail}，用尽即停。用 /种子 换个商店种子，或自行补充该种子`, 'err');
+          }
+        } else {
+          this.log(`💰 种子不足（背包 ${avail}/需 ${targets.length}），自动购买 ${need} 个`, 'task');
+          try {
             const r = await this.b.call(SVC.shop, 'BuyGoods', buildBuyGoods(g.id, need, g.price), 20000);
             const d = decodeBuyReply(r.body);
             const gold = d.cost.find(x => x.id === 1001);
             this.log(`💰 购买成功：得 ${d.get.map(x => `${x.id}×${x.count}`).join(' ')}，耗金币 ${gold ? gold.count : '?'}`, 'ok');
             avail = await bagCount();
             this.seedCount = avail;
-          }
-        } catch (e) { this.log('自动购买失败: ' + e.message, 'err'); }
+            this._starveId = 0;
+          } catch (e) { this.log('自动购买失败: ' + e.message, 'err'); }
+        }
       }
 
-      if (avail <= 0) { this.log(`种子 ${this.seedId} 仍不足，跳过种植`, 'err'); return; }
+      if (avail <= 0) {
+        if (this._starveId !== this.seedId) {
+          this._starveId = this.seedId;
+          this.log(`种子 ${this.seedId} 已用尽，暂停种植（换种: /种子 查看可选项 → /选种 <ID>）`, 'err');
+        }
+        return;
+      }
+      this._starveId = 0;
       const use = targets.slice(0, avail);
       if (use.length < targets.length) this.log(`种子仅 ${avail} 个，本轮只种 ${use.length}/${targets.length} 块`, 'err');
 
@@ -446,6 +462,14 @@ class Tui {
   // 种子静态信息（名称/生长时长/经验），来自游戏配置表解包
   seedInfo(id) {
     return (this.seedMap && this.seedMap[id]) || null;
+  }
+
+  // 生长时长人性化显示
+  fmtGrow(sec) {
+    if (!sec && sec !== 0) return '?';
+    if (sec >= 3600) return (sec / 3600).toFixed(1) + 'h';
+    if (sec >= 60) return Math.round(sec / 60) + 'm';
+    return sec + 's';
   }
 
   // 种下后从地块反查植物名，回填「种子ID -> 作物名」映射
@@ -687,6 +711,11 @@ class Tui {
         this.log('  /种植 [种子ID]    自动补种空地（种子不足会自动购买）', 'task');
         this.log('  /偷菜 [gid]       偷取好友成熟果实（省略=全部好友）', 'task');
         this.log('  /务农            帮好友清除杂草与虫（有奖励，额度无限）', 'task');
+        this.log('【种子管理】', 'ok');
+        this.log('  /种子            列出全部可选种子（含非卖品）★ = 当前使用', 'task');
+        this.log('  /种子 常用       仅列商店已解锁 + 背包持有的', 'task');
+        this.log('  /种子 狗尾       按名称或 ID 搜索', 'task');
+        this.log('  /选种 <ID>       切换挂机种子（非卖品也可选，用完无法补购）', 'task');
         this.log('【自家操作】', 'ok');
         this.log('  /铲除            清理枯死植株（收获后残留）', 'task');
         this.log('【放置类｜每日 100 次共享额度，需指定好友 gid】', 'ok');
@@ -702,7 +731,7 @@ class Tui {
         break;
       case 'harvest': await this.taskHarvest(); break;
       case 'clear': await this.taskClear(); break;
-      case 'plant': if (arg) this.seedId = Number(arg); await this.taskPlant(); break;
+      case 'plant': if (arg) { this.seedId = Number(arg); this._starveId = 0; } await this.taskPlant(); break;
       case 'steal': await this.taskRaid('steal', arg); break;
       case 'insect': await this.taskRaid('insect', arg); break;
       case 'weed': await this.taskRaid('weed', arg); break;
@@ -738,7 +767,6 @@ class Tui {
         const cat = await this.loadSeedCatalog(true);
         const bag = await this.bagSeedCount();
         const shopMap = new Map(cat.map(s => [s.id, s]));
-        const fmtH = (s) => !s ? '?' : (s >= 3600 ? (s / 3600).toFixed(1) + 'h' : (s >= 60 ? Math.round(s / 60) + 'm' : s + 's'));
 
         // 候选来源：① 商店（含未解锁，带价格） ② 背包持有  ③ 配置表全量
         // 默认列出配置表全部 200 个（含非卖品如狗尾草）；「常用」只列商店已解锁 + 背包持有
@@ -774,7 +802,7 @@ class Tui {
           const s = shopMap.get(id);
           const has = bag[id];
           const nm = info.name || '?';
-          const grow = fmtH(info.growSec);
+          const grow = this.fmtGrow(info.growSec);
           const exp = info.exp !== undefined ? info.exp : '?';
           const perH = info.growSec ? Math.round((info.exp || 0) * 3600 / info.growSec) : '?';
           const price = s ? String(s.price) : '—';
@@ -787,7 +815,7 @@ class Tui {
         const gs = shopMap.get(this.seedId);
         const nShop = ids.filter(id => shopMap.has(id)).length;
         this.log(`统计: 商店在售 ${nShop} 个，非卖品（活动/任务/奖励获得）${ids.length - nShop} 个`, 'task');
-        this.log(`当前挂机种子: ${this.seedId} ${gi.name || '?'}（${gs ? '单价 ' + gs.price + ' 金币，' : '非卖品，'}生长 ${fmtH(gi.growSec)}，经验 ${gi.exp ?? '?'}）`, 'ok');
+        this.log(`当前挂机种子: ${this.seedId} ${gi.name || '?'}（${gs ? '单价 ' + gs.price + ' 金币，' : '非卖品，'}生长 ${this.fmtGrow(gi.growSec)}，经验 ${gi.exp ?? '?'}）`, 'ok');
         this.log('用法: /种子         列出全部（含非卖品）', 'task');
         this.log('      /种子 常用    仅商店已解锁 + 背包持有', 'task');
         this.log('      /种子 狗尾    按名称或 ID 搜索', 'task');
@@ -797,13 +825,22 @@ class Tui {
       case 'selectseed': {
         const n = Number(arg);
         if (!n) { this.log('用法: /选种 <种子ID>   先用 /种子 查看可选项', 'err'); break; }
+        const info = this.seedInfo(n);
+        if (!info) { this.log(`未知种子 ID ${n}，用 /种子 或 /种子 <名称> 查找`, 'err'); break; }
         const cat = await this.loadSeedCatalog();
         const g = cat.find(s => s.id === n);
-        if (!g) { this.log(`商店里没有种子 ${n}，用 /种子 查看可选项`, 'err'); break; }
-        if (!g.unlocked) { this.log(`种子 ${n} 尚未解锁（需要 lv${g.lv}）`, 'err'); break; }
+        const bag = await this.bagSeedCount();
+        const have = bag[n] || 0;
+        if (!g && !have) {
+          this.log(`⚠ ${n} ${info.name} 不在商店且背包为 0，种不了（该类种子靠活动/任务/奖励获得）`, 'err');
+          break;
+        }
+        if (g && !g.unlocked) this.log(`⚠ ${n} ${info.name} 商店尚未解锁（需 lv${g.lv}），仅能消耗背包现有 ${have} 个`, 'err');
         this.seedId = n;
+        this._starveId = 0;            // 重置缺种提示抑制，换种后重新提示
         this._saveConfig();
-        this.log(`✅ 已设定挂机种子: ${n} ${this.seedName(n) || ''}（单价 ${g.price} 金币）`, 'ok');
+        const src = g ? `单价 ${g.price} 金币` : `非卖品 · 背包 ${have} 个，用尽无法补购`;
+        this.log(`✅ 已设定挂机种子: ${n} ${info.name}（${src}，生长 ${this.fmtGrow(info.growSec)}，经验 ${info.exp}，exp/时 ${info.growSec ? Math.round(info.exp * 3600 / info.growSec) : '?'}）`, 'ok');
         break;
       }
       case 'quit': this.quit = true; break;
