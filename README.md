@@ -161,12 +161,43 @@ node tools/tui.mjs --yes -m
 ### 启动参数
 
 ```bash
-node tools/tui.mjs                    # 交互模式（首次引导输入）
-node tools/tui.mjs --yes -m           # 跳过引导，就绪后自动挂机
+node tools/tui.mjs                    # 全屏 TUI（交互面板）
+node tools/tui.mjs --cli              # ★ CLI 模式：纯滚动输出 + 指令输入（推荐）
+node tools/tui.mjs --cli --interval 30
+node tools/tui.mjs --daemon           # 守护模式：无任何界面，仅写日志
 node tools/tui.mjs --once             # 无界面跑一轮后退出（定时任务）
 node tools/tui.mjs --gid <n>          # 指定 gid，省去探测等待
 node tools/tui.mjs --port <n>         # 指定调试端口（默认 62000，可自动发现）
 node tools/tui.mjs --seed <n>         # 指定种植种子 ID
+node tools/tui.mjs --log-dir <path>   # 指定日志目录（默认 ./logs）
+```
+
+### 三种运行模式怎么选
+
+| 模式 | 界面 | 适用场景 | 终端兼容性 |
+|---|---|---|---|
+| `--cli` | **滚动日志 + `指令>` 提示符** | **日常使用（推荐）** | **最好**，不依赖任何特殊转义序列 |
+| `--daemon` | 无 | 服务器 / 长时间无人值守 | 无要求 |
+| 默认（TUI） | 全屏面板 | 想同时看地块与好友状态 | 依赖 alternate screen，部分终端有兼容问题 |
+
+> **如果你的终端是全屏 TUI 卡死，请改用 `--cli`。** 全屏模式依赖 `\x1b[?1049h`（alternate screen）与光标定位，PowerShell / 传统 conhost 对这类序列支持不佳时会导致界面假死。CLI 模式只做滚动打印，从根本上规避该问题，功能完全一致。
+
+### CLI 模式示例
+
+```
+  QQ 经典农场 挂机助手 · CLI 模式
+  端口 62000   周期 60s
+  输入 /帮助 查看指令，/退出 结束
+
+[12:33:43] [🔌] 桥接就绪 ctx=7
+[12:33:43] [🔑] 账号 小果 (lv39) gid=10001 土地=24 好友=14
+[12:33:43] [📄] 日志文件: D:\...\logs\run-2026-09-25T04-33-41.log
+[12:33:43] 挂机已启动，Ctrl+C 退出
+[12:33:43] 💰 种子不足（背包 0/需 2），自动购买 2 个
+[12:33:43] 🌱 种植 2 块: 12,13 (seed 20002) → ✅ 种植成功 269B
+[12:33:45] 🧹 务农 Have a nice day / A 宁 / 小夏缘 → 清理 3 条
+[12:33:45] [⏱] 本轮结束 · 主地 10 成熟 0 空地 0 · 下一轮 60s
+指令> /好友
 ```
 
 ---

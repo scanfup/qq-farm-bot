@@ -788,13 +788,14 @@ class Tui {
 // ---------- 启动引导 ----------
 function parseArgs() {
   const a = process.argv.slice(2);
-  const o = { port: Number(process.env.CDP_PORT || 62000), gid: Number(process.env.MY_GID || 0) || null, seedId: 20002, yes: false, once: false, daemon: false, monitor: false, logDir: null, interval: 60000 };
+  const o = { port: Number(process.env.CDP_PORT || 62000), gid: Number(process.env.MY_GID || 0) || null, seedId: 20002, yes: false, once: false, daemon: false, cli: false, monitor: false, logDir: null, interval: 60000 };
   for (let i = 0; i < a.length; i++) {
     if (a[i] === '--port') o.port = Number(a[++i]);
     else if (a[i] === '--gid') o.gid = Number(a[++i]);
     else if (a[i] === '--seed') o.seedId = Number(a[++i]);
     else if (a[i] === '--once') o.once = true;
     else if (a[i] === '--daemon') o.daemon = true;
+    else if (a[i] === '--cli') o.cli = true;
     else if (a[i] === '--log-dir') o.logDir = a[++i];
     else if (a[i] === '--interval') o.interval = Number(a[++i]) * 1000;
     else if (a[i] === '--monitor' || a[i] === '-m') o.monitor = true;
@@ -823,7 +824,69 @@ if (IS_MAIN) {
 
   // ---- 守护模式：不接管终端，只写日志，适合长时间无人值守 ----
   // 相比 TUI 交互模式，它不重绘屏幕，因此不存在终端背压导致的卡死风险。
-  if (opts.daemon) {
+  // ---- CLI 模式：纯滚动输出 + 命令输入，不使用全屏重绘 ----
+  // 不进入 alternate screen、不做光标定位，终端只需滚动打印，
+  // 从根本上规避 PowerShell / conhost 对 TUI 转义序列支持不佳导致的假死。
+  if (opts.cli) {
+    const CR = '\x1b[0m';
+    const b = new Bridge({ port: opts.port, gid: opts.gid });
+    const t = new Tui(b, { ...opts, headless: true });
+    let rl = null;
+    let cycleTimer = null;
+
+    const banner = [
+      '',
+      '  QQ 经典农场 挂机助手 · CLI 模式',
+      `  端口 ${opts.port}   周期 ${opts.interval / 1000}s`,
+      '  输入 /帮助 查看指令，/退出 结束',
+      '',
+    ].join('\n');
+    console.log(banner);
+
+    try {
+      await b.ensure({ onLog: (m) => t.log(m) });
+      t.log(`[🔌] 桥接就绪 ctx=${b.ctxId}`, 'ok');
+      if (!t.gid) t.gid = await b.detectGid({ onLog: (m) => t.log(m) });
+      await t.refresh();
+      t.log(`[🔑] 账号 ${t.acct?.name || '?'} (lv${t.acct?.level ?? '?'}) gid=${t.gid} 土地=${t.lands.length} 好友=${t.friends.length}`, 'ok');
+      t.log(`[📄] 日志文件: ${t.logPath || '(未启用)'}`, 'ok');
+      t.log('挂机已启动，Ctrl+C 退出', 'ok');
+
+      const cycle = async () => {
+        if (t.busy) return;
+        await t.taskAll();
+        const mains = t.lands.filter(l => l.unlocked && l.masterLandId === 0);
+        t.log(`[⏱] 本轮结束 · 主地 ${mains.length} 成熟 ${mains.filter(l => l.plant?.isRipe).length} 空地 ${mains.filter(l => !l.plant?.id).length} · 下一轮 ${opts.interval / 1000}s`, 'task');
+      };
+      await cycle();
+      cycleTimer = setInterval(cycle, opts.interval);
+
+      // 命令输入：标准 readline，不用 raw mode
+      rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: '指令> ' });
+      rl.on('line', async (line) => {
+        const cmd = String(line || '').trim();
+        if (!cmd) { rl.prompt(); return; }
+        if (!cmd.startsWith('/')) {
+          t.log(`未知输入 "${cmd}"，请输入以 / 开头的指令（/帮助 查看）`, 'err');
+          rl.prompt(); return;
+        }
+        await t.runCommand(cmd);
+        if (t.quit) { rl.close(); return; }
+        rl.prompt();
+      });
+      rl.on('close', () => {
+        if (cycleTimer) clearInterval(cycleTimer);
+        b.close();
+        console.log(`\n已退出。日志: ${t.logPath || '(未启用)'}`);
+        process.exit(0);
+      });
+      rl.prompt();
+    } catch (e) {
+      t.log('启动失败: ' + e.message, 'err');
+      b.close();
+      process.exit(1);
+    }
+  } else if (opts.daemon) {
     const b = new Bridge({ port: opts.port, gid: opts.gid });
     const t = new Tui(b, { ...opts, headless: true });
     let ok = false;
