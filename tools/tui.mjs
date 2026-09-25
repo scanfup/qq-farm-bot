@@ -1,7 +1,7 @@
 // QQ 农场挂机 TUI
 // 用法: node tools/tui.mjs [--port 62000] [--gid 1274359435] [--yes]
 import readline from 'node:readline';
-import { createWriteStream, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { Bridge, PHASE, sleep } from './core.mjs';
 import {
@@ -63,35 +63,26 @@ class Tui {
     this.cmdBuf = '';
     this.cmdHistory = [];
 
-    // 运行日志文件：独立于终端，即使 TUI 卡住或崩溃也能留下记录
+    // 运行日志文件：同步追加写入，确保进程被强杀也不丢记录
     try {
       const dir = opts.logDir || join(process.cwd(), 'logs');
       mkdirSync(dir, { recursive: true });
       const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       this.logPath = join(dir, `run-${stamp}.log`);
-      this.logStream = createWriteStream(this.logPath, { flags: 'a' });
       const header = [
         '# QQ 农场挂机运行日志',
         `# 开始时间: ${new Date().toLocaleString()}`,
         `# 端口: ${bridge.port}  gid: ${opts.gid || '(自动探测)'}  种子: ${opts.seedId || 20002}`,
-        `# Node: ${process.version}  平台: ${process.platform}`,
+        `# Node: ${process.version}  平台: ${process.platform}  cwd: ${process.cwd()}`,
+        `# 终端: TTY=${process.stdin.isTTY}  列=${process.stdout.columns || '?'}  行=${process.stdout.rows || '?'}`,
         '',
       ].join('\n');
-      this.logStream.write(header + '\n');
+      appendFileSync(this.logPath, header + '\n');
     } catch (e) {
       this.logPath = null;
-      this.logStream = null;
     }
-    // 确保进程异常退出时日志不丢
-    const flushLog = () => { try { this.logStream && this.logStream.end(); } catch { } };
-    process.once('exit', flushLog);
-    process.once('SIGINT', () => { flushLog(); process.exit(0); });
-    process.once('uncaughtException', (err) => {
-      try { this.logStream && this.logStream.write(`[FATAL] ${err && err.stack || err}\n`); } catch { }
-      flushLog();
-      console.error('未捕获异常:', err);
-      process.exit(1);
-    });
+    // 启动即记录，便于判断进程走到哪一步
+    this.log(`[启动] 进程 ${process.pid} 已启动，参数: ${JSON.stringify(opts)}`);
   }
 
   log(msg, kind = 'info') {
@@ -99,9 +90,9 @@ class Tui {
     this.logs.push(entry);
     if (this.logs.length > 200) this.logs.shift();
 
-    // ① 始终落盘 —— 独立 IO，不依赖终端，TUI 卡死也能留下完整记录
-    if (this.logStream) {
-      try { this.logStream.write(`[${entry.t}] ${String(kind).padEnd(4)} ${entry.m}\n`); } catch { }
+    // ① 始终同步落盘 —— 不经过事件循环，进程被强杀也保留全部记录
+    if (this.logPath) {
+      try { appendFileSync(this.logPath, `[${entry.t}] ${String(kind).padEnd(4)} ${entry.m}\n`); } catch { }
     }
 
     // ② 无界面模式：直接打 stdout
@@ -129,8 +120,9 @@ class Tui {
   render() {
     // 防重入 + 终端背压保护：写缓冲满时跳过重绘，避免阻塞事件循环导致键盘失灵
     if (this._rendering) return;
-    if (this._paused && Date.now() < (this._pausedUntil || 0)) return;
+    if (this._paused && Date.now() < (this._pausedUntil || 0)) { this._skipRender = (this._skipRender || 0) + 1; return; }
     this._rendering = true;
+    this._renderCount = (this._renderCount || 0) + 1;
     let frame = '';
     try {
       frame = this._buildFrame();
@@ -695,8 +687,15 @@ class Tui {
     process.stdin.setEncoding('utf8');
     readline.emitKeypressEvents(process.stdin);
     if (process.stdin.isTTY) process.stdin.setRawMode(true);
+    this.log(`[终端] raw模式=${(() => { try { return process.stdin.isRaw; } catch { return '?'; } })()} TTY=${process.stdin.isTTY}`);
+
     process.stdin.on('keypress', async (ch, key) => {
       if (!key) return;
+      try {
+        // 记录按键，用于诊断"按键无响应"
+        const kn = key.name || ch || '?';
+        if (kn !== 'tab') this.log(`[按键] ${kn}${key.ctrl ? ' (ctrl)' : ''}`);
+      } catch { }
       if (key.ctrl && key.name === 'c') { this.quit = true; return; }
 
       // ---- / 指令输入模式 ----
@@ -754,12 +753,18 @@ class Tui {
 
     // 周期心跳
     const hb = setInterval(async () => {
+      this._hbCount = (this._hbCount || 0) + 1;
       try {
         const p = await this.b.ping();
         this.conn = p.status;
         if (!p.ok) { this.b.status = 'error'; }
         else this.b.status = 'ready';
       } catch { this.b.status = 'error'; }
+      // 每 30 秒落一条存活记录：若日志里长时间没有 tick，说明事件循环被阻塞
+      if (this._hbCount % 15 === 0) {
+        this.log(`[存活] #${this._hbCount} 渲染=${this._renderCount || 0} 背压跳过=${this._skipRender || 0} 桥接=${this.b.status}`,
+          this.b.status === 'ready' ? 'task' : 'err');
+      }
       this.render();
     }, 2000);
 
