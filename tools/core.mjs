@@ -1,6 +1,7 @@
 // 核心桥接层：CDP 连接 + 上下文探测 + __netInst 抓取 + __bot 注入 + 自愈
 // 供 TUI 与命令行工具复用
 import { readFileSync } from 'node:fs';
+import { discoverNetwork } from './network-discovery.mjs';
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -70,9 +71,12 @@ export class Bridge {
 
   async _dialPort(port, timeoutMs = 10000) {
     const ws = new WebSocket(`ws://127.0.0.1:${port}`);
+    // A new connection has a new context/script identity space.
+    for (const p of this._pending.values()) p.rej(new Error('CDP 连接已重建'));
     this._pending.clear();
-    this._id = 0;
+    this.contexts = []; this.scripts = []; this.ctxId = null;
     ws.addEventListener('message', (ev) => {
+      if (this.ws !== ws) return;
       let m;
       try { m = JSON.parse(typeof ev.data === 'string' ? ev.data : Buffer.from(ev.data).toString('utf8')); } catch { return; }
       if (m.id && this._pending.has(m.id)) {
@@ -81,11 +85,30 @@ export class Bridge {
         return;
       }
       if (m.method === 'Debugger.scriptParsed') this.scripts.push(m.params);
-      if (m.method === 'Runtime.executionContextCreated') this.contexts.push(m.params.context);
+      if (m.method === 'Runtime.executionContextCreated') {
+        this.contexts = this.contexts.filter(c => c.id !== m.params.context.id);
+        this.contexts.push(m.params.context);
+      }
+      if (m.method === 'Runtime.executionContextDestroyed') {
+        const id = m.params.executionContextId;
+        this.contexts = this.contexts.filter(c => c.id !== id);
+        if (this.ctxId === id) { this.ctxId = null; this.gid = null; }
+      }
+      if (m.method === 'Runtime.executionContextsCleared') {
+        this.contexts = []; this.ctxId = null; this.gid = null;
+      }
     });
-    ws.addEventListener('close', () => { if (this.ws === ws) this.status = 'error'; });
+    ws.addEventListener('close', () => {
+      if (this.ws !== ws) return;
+      this.status = 'error';
+      for (const p of this._pending.values()) p.rej(new Error('CDP 连接已断开'));
+      this._pending.clear();
+    });
     await new Promise((res, rej) => {
-      const t = setTimeout(() => rej(new Error(`CDP 连接超时 (127.0.0.1:${port})`)), timeoutMs);
+      const t = setTimeout(() => {
+        try { ws.close(); } catch { }
+        rej(new Error(`CDP 连接超时 (127.0.0.1:${port})`));
+      }, timeoutMs);
       ws.addEventListener('open', () => { clearTimeout(t); res(); });
       ws.addEventListener('error', () => {
         clearTimeout(t);
@@ -106,12 +129,15 @@ export class Bridge {
     return new Promise((res, rej) => {
       if (!this.ws || this.ws.readyState !== 1) return rej(new Error('CDP 未连接'));
       const id = ++this._id;
-      this._pending.set(id, { res, rej });
-      try { this.ws.send(JSON.stringify({ id, method, params: params || {} })); }
-      catch (e) { this._pending.delete(id); return rej(e); }
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (this._pending.has(id)) { this._pending.delete(id); rej(new Error('CDP 超时: ' + method)); }
       }, timeoutMs);
+      this._pending.set(id, {
+        res: value => { clearTimeout(timer); res(value); },
+        rej: error => { clearTimeout(timer); rej(error); },
+      });
+      try { this.ws.send(JSON.stringify({ id, method, params: params || {} })); }
+      catch (e) { clearTimeout(timer); this._pending.delete(id); rej(e); }
     });
   }
 
@@ -126,43 +152,56 @@ export class Bridge {
   }
 
   close() {
+    for (const p of this._pending.values()) p.rej(new Error('CDP 已关闭'));
+    this._pending.clear();
     try { if (this.ws) this.ws.close(); } catch { }
     this.ws = null;
+    this.ctxId = null; this.contexts = []; this.scripts = [];
     this.status = 'idle';
   }
 
   // ---------- 上下文探测 ----------
-  // 注意：不要清空 this.contexts。CDP 的 Runtime.enable 对「已存在」的执行上下文
-  // 不会重复推送，一旦清空就再也收集不到，导致自愈时误判「游戏已关闭」。
-  async detectContext() {
-    await this._send('Runtime.enable').catch(() => { });
-    await sleep(1200);
-    const probe = `JSON.stringify({t:typeof globalThis.tsdk,c:typeof globalThis.cc,w:typeof globalThis.wx,k:Object.keys(globalThis).length})`;
-    for (const c of this.contexts) {
-      if (c.auxData && c.auxData.type === 'isolated') continue;
-      try {
-        const raw = await this.evaluate(probe, { ctx: c.id, timeoutMs: 6000 });
-        if (!raw) continue;
-        const j = JSON.parse(raw);
-        // 游戏主上下文：有 tsdk + cc，且全局 key 数量在 100+ 量级
-        if (j.t === 'object' && j.c === 'object' && j.k > 100) {
-          this.ctxId = c.id;
-          return { id: c.id, ok: true, info: j };
-        }
-      } catch { /* 该上下文不可用 */ }
-    }
-    throw new Error('未找到游戏主上下文（tsdk+cc）');
+  // Runtime.enable on a fresh attachment replays its current context identities.
+  // Re-entry may leave an old proxy socket open; ensure() replaces it on failure.
+  async detectContext({ timeoutMs = 6000 } = {}) {
+    await this._send('Runtime.enable', {}, Math.min(timeoutMs, 3000));
+    const deadline = Date.now() + timeoutMs;
+    const probe = `JSON.stringify({t:typeof globalThis.tsdk,c:typeof globalThis.cc,s:typeof globalThis.System,k:Object.keys(globalThis).length})`;
+    do {
+      for (const c of [...this.contexts]) {
+        if (c.auxData?.type === 'isolated') continue;
+        try {
+          const remaining = deadline - Date.now();
+          if (remaining <= 0) break;
+          const raw = await this.evaluate(probe, { ctx: c.id, timeoutMs: Math.min(1500, remaining) });
+          const j = raw && JSON.parse(raw);
+          if (j && j.t === 'object' && j.c === 'object' && j.s === 'object') {
+            this.ctxId = c.id;
+            return { id: c.id, ok: true, info: j };
+          }
+        } catch { /* A context may disappear while the game is re-entering. */ }
+      }
+      if (Date.now() >= deadline) break;
+      await sleep(150);
+    } while (Date.now() < deadline);
+    throw new Error('未找到已加载的游戏上下文（tsdk+cc+System），请等待游戏加载后重试');
   }
 
   // ---------- 桥接健康检查 ----------
   async ping() {
     try {
       const r = await this.evaluate(
-        `(function(){var b=globalThis.__bot;if(!b||typeof b.status!=='function')return 'NOBOT';var s=b.status();return s?JSON.stringify({st:s.state,cseq:s.clientSeq,url:s.url,openid:s.openid}):'NULL';})()`,
-        { timeoutMs: 8000 },
+        `(() => {
+          const found = ${discoverNetwork};
+          if (!found.ok) return JSON.stringify({ ok: false, reason: found.reason });
+          const b = globalThis.__bot, n = globalThis.__netInst;
+          if (!b || typeof b.status !== 'function' || b.net !== n) return JSON.stringify({ ok: false, reason: '桥接缺失或引用已失效' });
+          return JSON.stringify({ ok: true, status: { state: n.getState(), cseq: n.clientSeq } });
+        })()`,
+        { timeoutMs: 3000 },
       );
-      if (!r || r === 'NOBOT' || r === 'NULL') return { ok: false, reason: r || 'EMPTY' };
-      return { ok: true, status: JSON.parse(r) };
+      if (!r) return { ok: false, reason: '健康检查为空' };
+      return JSON.parse(r);
     } catch (e) {
       return { ok: false, reason: e.message };
     }
@@ -170,6 +209,10 @@ export class Bridge {
 
   // ---------- 抓 __netInst（断点法） ----------
   async grabNetInst({ timeoutMs = 45000, onLog = () => { } } = {}) {
+    const found = await this.evaluate(discoverNetwork, { timeoutMs: 8000 });
+    if (found?.ok) { onLog('已发现在线网络实例：' + found.source); return true; }
+    // Offset-based capture remains an explicit legacy opt-in only.
+    if (process.env.CDP_ALLOW_BREAKPOINT_FALLBACK !== '1') throw new Error(found?.reason || '未找到游戏网络实例');
     // 已有引用则直接复用
     const existing = await this.evaluate('typeof globalThis.__netInst', { timeoutMs: 6000 }).catch(() => 'undefined');
     if (existing === 'object') { onLog('__netInst 已存在，跳过断点'); return true; }
@@ -196,10 +239,11 @@ export class Bridge {
       location: { scriptId: script.scriptId, lineNumber: 2, columnNumber: 2842155 },
     });
 
+    let grabbed = false;
+    try {
     const deadline = Date.now() + timeoutMs;
     while (!pausedInfo && Date.now() < deadline) await sleep(300);
 
-    let grabbed = false;
     if (pausedInfo) {
       const frames = pausedInfo.callFrames || [];
       for (const f of frames) {
@@ -226,12 +270,14 @@ export class Bridge {
           }
         } catch { /* 换下一帧 */ }
       }
-      await this._send('Debugger.resume').catch(() => { });
     }
-    this.ws.removeEventListener('message', onPaused);
-    await this._send('Debugger.removeBreakpoint', { breakpointId: bp.breakpointId }).catch(() => { });
-    await this._send('Debugger.disable').catch(() => { });
-    if (!grabbed) throw new Error('断点未命中或未取到网络层实例（等待 ' + Math.round(timeoutMs / 1000) + 's）');
+    } finally {
+      if (pausedInfo) await this._send('Debugger.resume').catch(() => { });
+      this.ws?.removeEventListener('message', onPaused);
+      await this._send('Debugger.removeBreakpoint', { breakpointId: bp.breakpointId }).catch(() => { });
+      await this._send('Debugger.disable').catch(() => { });
+    }
+    if (!grabbed) throw new Error('断点未命中或未取到网络层实例（等待 ' + Math.round(timeoutMs / 1000) + 's）；请确认小游戏已登录并进入自己的农场，游戏版本变化也可能需要更新断点');
     return true;
   }
 
@@ -246,33 +292,43 @@ export class Bridge {
   }
 
   // ---------- 自愈：确保桥接可用 ----------
-  async ensure({ onLog = () => { } } = {}) {
+  async ensure(options = {}) {
+    if (this._ensurePromise) return this._ensurePromise;
+    this._ensurePromise = this._ensure(options).finally(() => { this._ensurePromise = null; });
+    return this._ensurePromise;
+  }
+
+  async _ensure({ onLog = () => { }, forceReconnect = false } = {}) {
     this.status = 'connecting';
-    if (!this.ws || this.ws.readyState !== 1) {
-      onLog(`连接 CDP ${this.url}`);
-      await this._dial();
+    if (!forceReconnect && this.ws?.readyState === 1 && this.ctxId) {
+      const pong = await this.ping();
+      if (pong.ok) { this.status = 'ready'; return pong; }
+      onLog(`旧 CDP 会话已失效 (${pong.reason})，重新连接`);
+      this.recoveries++;
     }
-    if (!this.ctxId) {
-      const c = await this.detectContext();
-      onLog(`游戏上下文 ctx=${c.id} (keys=${c.info.k})`);
+    let failure;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      // The debugger proxy can stay OPEN while its underlying game session changed.
+      // Only a new attachment reliably replays all current execution contexts.
+      this.close(); this.status = 'connecting';
+      try {
+        onLog(`重新建立 CDP 连接 ${this.url}`);
+        await this._dial();
+        const context = await this.detectContext();
+        onLog(`游戏上下文 ctx=${context.id} (keys=${context.info.k})`);
+        await this.grabNetInst({ onLog });
+        await this.injectBot();
+        const pong = await this.ping();
+        if (!pong.ok) throw new Error('桥接检查失败：' + pong.reason);
+        this.status = 'ready'; this.lastError = null;
+        return pong;
+      } catch (error) {
+        failure = error; this.close();
+        if (attempt === 0) { onLog('游戏可能正在重载，稍后重新发现上下文'); await sleep(750); }
+      }
     }
-    let pong = await this.ping();
-    if (pong.ok) {
-      this.status = 'ready';
-      return pong;
-    }
-    onLog(`桥接不可用 (${pong.reason})，执行自愈`);
-    this.recoveries++;
-    this.scripts = [];
-    this.ctxId = null;          // 强制重探，但保留 this.contexts（见 detectContext 注释）
-    await this.detectContext().catch(() => { });
-    if (!this.ctxId) throw new Error('自愈失败：未找到游戏上下文（游戏可能已关闭）');
-    await this.grabNetInst({ onLog });
-    await this.injectBot();
-    pong = await this.ping();
-    if (!pong.ok) throw new Error('自愈失败：' + pong.reason);
-    this.status = 'ready';
-    return pong;
+    this.status = 'error'; this.lastError = failure?.message;
+    throw failure || new Error('CDP 恢复失败');
   }
 
   // ---------- 业务调用 ----------

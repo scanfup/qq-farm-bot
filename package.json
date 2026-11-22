@@ -11,7 +11,10 @@
     "start": "node tools/tui.mjs",
     "monitor": "node tools/tui.mjs --yes -m",
     "once": "node tools/tui.mjs --once",
-    "port": "node tools/port-find.mjs"
+    "port": "node tools/port-find.mjs",
+    "web": "node web/server.mjs",
+    "web:demo": "node web/server.mjs --demo",
+    "test": "node --test web/*.test.mjs"
   },
   "keywords": [
     "qq-farm",

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#153d34" />
+  <title>QQ 农场 · 控制台</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">✦</span><div><strong>QQ 农场</strong><small>FARM CONTROL</small></div></div>
+      <div class="top-actions"><span id="modeBadge" class="mode-badge">连接中</span><button id="connectBtn" class="btn btn-primary">连接运行时</button><button id="refreshBtn" class="btn btn-ghost">刷新状态</button></div>
+    </header>
+    <nav class="page-nav" aria-label="控制台页面">
+      <div class="page-links">
+        <a class="page-link active" href="#/farm" data-route="farm" aria-current="page">农场</a>
+        <a class="page-link" href="#/pasture" data-route="pasture">牧场</a>
+        <a class="page-link" href="#/settings" data-route="settings">优先设置</a>
+      </div>
+      <div class="nav-status"><span id="runtimeSummary" role="status">等待连接</span><span id="monitorSummary">定时关闭</span><button id="activityToggle" class="btn btn-ghost" aria-controls="activitySidebar" aria-expanded="false">查看日志</button></div>
+    </nav>
+    <div class="workspace-layout">
+      <main id="pageMain" class="page-main">
+        <section id="notice" class="notice hidden" role="status" aria-live="polite"></section>
+        <section class="route-page" data-page="farm" aria-labelledby="farmPageTitle">
+      <section class="hero-grid">
+        <div class="hero-card"><div class="eyebrow">FARM OVERVIEW</div><h1 id="farmPageTitle">农场管理</h1><p>上方管理自家农场，下方查看好友与批量操作；农田详情按需展开。</p><div class="hero-stats"><div><b id="landCount">—</b><span>地块</span></div><div><b id="ripeCount">—</b><span>待收获</span></div><div><b id="careCount">—</b><span>需照料</span></div></div></div>
+        <div class="connection-card"><div class="card-heading"><span>运行时连接</span><span id="connectionDot" class="status-dot"></span></div><div class="connection-state" id="connectionState">未连接</div><div class="connection-meta"><span>端口 <b id="portValue">—</b></span><span>上下文 <b id="contextValue">—</b></span></div><div id="lastError" class="error-text"></div></div>
+      </section>
+          <section class="panel farm-panel" aria-label="自家农场与好友管理"><section class="scene-monitor" data-monitor-scene="farm" aria-labelledby="farmMonitorTitle"><div class="scene-monitor-heading"><div><h2 id="farmMonitorTitle">农场定时托管</h2><p id="farmMonitorStatus" role="status">已关闭</p></div><label class="switch"><input id="farmMonitorToggle" type="checkbox" aria-label="启用农场定时托管"><span></span></label></div><div class="scene-monitor-controls"><label>间隔 <input id="farmMonitorInterval" type="number" min="60" max="3600" step="60" value="300"> 秒</label><label class="check-line"><input id="farmMonitorFriends" type="checkbox" checked>包含全部好友（帮忙＋偷菜）</label><button id="farmMonitorApply" class="btn btn-ghost">应用设置</button></div><p id="farmMonitorHint" class="friend-muted">自动收获、清枯株、按已保存优先级或明确选中的种子补种，再照料和好友偷菜。 关闭网页后继续运行；服务或电脑关闭后停止，重启不自动开启。</p></section>
+      <section class="toolbar"><div><h2>我的农田</h2><p id="fetchedAt">等待同步</p></div><div class="toolbar-actions"><label class="select-wrap"><span>背包种子</span><select id="seedSelect" aria-describedby="seedInventoryStatus" disabled><option value="">等待加载种子库存</option></select></label><button class="btn btn-dark" data-command="harvest">收获成熟作物</button><button class="btn btn-accent" data-command="plant" disabled>种植背包种子</button></div></section>
+      <p id="seedInventoryStatus" role="status" aria-live="polite">种子库存尚未加载，请连接运行时后刷新状态</p>
+          <details id="landsDisclosure" class="panel lands-disclosure">
+            <summary><span><strong>农田详情</strong><small id="landSummary">等待同步</small></span><span class="disclosure-hint">点击展开 / 收起</span></summary>
+      <section id="landsGrid" class="lands-grid"><div class="empty-state"><div class="empty-icon">◌</div><h3>等待农场状态</h3><p>连接运行时后，这里会显示地块信息。</p></div></section>
+          </details>
+        <section class="quick-panel"><div class="panel-title"><h2>快捷农务</h2><span>仅手动触发</span></div><div class="quick-actions"><button class="action-tile" data-command="farm-manage"><span class="tile-icon">♧</span><strong>农场一键务农</strong><small>自家照料 + 全部好友帮忙务农、偷菜</small></button><button class="action-tile" data-command="remove-dead"><span class="tile-icon">⌁</span><strong>清理枯株</strong><small>移除已经失效的作物</small></button></div></section>
+      <section class="farm-friends-section" aria-labelledby="friendsTitle">
+        <div class="friends-heading"><div><h3 id="friendsTitle">好友农场 <span id="friendCount" class="friend-count">—</span></h3><p id="friendStatus" role="status" aria-live="polite">好友数据尚未加载，请主动刷新</p><p id="friendAccount" class="friend-muted"></p></div><div class="friend-batch"><button id="friendsRefreshBtn" class="btn btn-primary">刷新好友列表</button><button id="friendStealAllBtn" class="btn btn-dark" disabled>一键偷菜</button><button id="friendCareAllBtn" class="btn btn-ghost" disabled>一键帮好友务农</button></div></div>
+        <div class="friends-tools"><label class="friend-search"><span>搜索好友</span><input id="friendSearch" type="search" placeholder="昵称或 GID" autocomplete="off"></label></div>
+        <p id="friendQuota" class="friend-quota">撒虫 / 撒草共享每日额度：尚未加载</p><p class="friend-muted">好友摘要仅供参考；帮忙务农会由后端检查实际地块。撒虫、撒草仅手动触发，不加入自动任务。</p>
+        <div id="friendList" class="friend-list"><div class="muted-empty">尚未读取好友列表，不代表没有好友。</div></div>
+        <section id="friendPreview" class="friend-preview hidden" aria-labelledby="friendPreviewTitle"><div class="friends-heading"><div><h3 id="friendPreviewTitle">好友农场预览</h3><p id="friendPreviewStatus"></p></div><button id="friendPreviewClose" class="btn btn-ghost">关闭预览</button></div><p class="preview-returned">这是好友农场缓存预览；后端访问后已自动返回，并非当前停留的农场。</p><div id="friendPreviewLands" class="friend-preview-lands"></div></section>
+      </section>
+          </section>
+        </section>
+        <section class="route-page" data-page="pasture" aria-labelledby="pasturePageTitle" hidden>
+          <div class="page-intro"><div><h1 id="pasturePageTitle">牧场管理</h1><p>自家牧场和好友操作集中展示，种植与饲养偏好可在设置页调整。</p></div><a href="#/settings" class="btn btn-ghost">设置饲养优先级</a></div>
+      <section class="panel pasture-panel" aria-labelledby="pastureTitle">
+        <div class="friends-heading"><div><h2 id="pastureTitle">我的牧场 <span id="pastureCount" class="friend-count">—</span></h2><p id="pastureStatus" role="status" aria-live="polite">牧场尚未加载，请刷新</p><p id="pastureAccount" class="friend-muted"></p></div><button id="pastureRefreshBtn" class="btn btn-primary">刷新牧场</button></div>
+        <section class="scene-monitor" data-monitor-scene="pasture" aria-labelledby="pastureMonitorTitle"><div class="scene-monitor-heading"><div><h2 id="pastureMonitorTitle">牧场定时托管</h2><p id="pastureMonitorStatus" role="status">已关闭</p></div><label class="switch"><input id="pastureMonitorToggle" type="checkbox" aria-label="启用牧场定时托管"><span></span></label></div><div class="scene-monitor-controls"><label>间隔 <input id="pastureMonitorInterval" type="number" min="60" max="3600" step="60" value="300"> 秒</label><label class="check-line"><input id="pastureMonitorFriends" type="checkbox" checked>包含全部好友（清理＋摘取）</label><label class="check-line"><input id="pastureMonitorFeed" type="checkbox" checked>仅库存补牧草</label><button id="pastureMonitorApply" class="btn btn-ghost">应用设置</button></div><p id="pastureMonitorHint" class="friend-muted">牧场托管无需选择种子；自动清理、补草、生产、收取、优先补栏和好友操作。 关闭网页后继续运行；服务或电脑关闭后停止，重启不自动开启。</p></section><div class="pasture-toolbar"><button class="btn btn-primary" data-pasture-command="pasture-manage">牧场一键务农（含全部好友）</button><button class="btn btn-ghost" data-pasture-command="pasture-clean">清理自家牧场</button><button class="btn btn-ghost" data-pasture-command="pasture-produce">接生 / 开始生产</button><button class="btn btn-dark" data-pasture-command="pasture-harvest">收取自家产物 / 动物</button><button class="btn btn-accent" data-pasture-command="pasture-place">按已保存优先级补栏</button><button class="btn btn-ghost" data-pasture-command="pasture-feed">用库存补牧草</button></div>
+        <div id="pastureRanches" class="ranch-grid"><div class="muted-empty">尚未读取牧场，不显示模拟农田或动物。</div></div>
+        <div class="animal-buy-box"><div><strong>手动购买动物幼崽</strong><p class="friend-muted">按当前商品价格购买；数量、解锁和最终结果由服务器核对。</p></div><label>动物 <select id="animalBuySelect" aria-label="购买动物"></select></label><label>数量 <input id="animalBuyCount" type="number" min="1" max="20" step="1" value="1"></label><span id="animalBuyTotal" class="buy-total">等待商品价格</span><button id="animalBuyBtn" class="btn btn-caution" disabled>购买所选动物</button></div>
+        <div class="pasture-friends-heading"><div><h3>好友牧场 <span id="pastureFriendCount" class="friend-count">—</span></h3><p id="pastureFriendStatus" class="friend-muted" role="status">尚未加载</p></div><div class="friend-batch"><button class="btn btn-ghost" data-pasture-command="pasture-friends-clean">一键清理所有好友牧场</button><button class="btn btn-dark" data-pasture-command="pasture-friends-steal">一键摘取所有好友产物</button></div></div>
+        <div class="friends-tools"><label class="friend-search"><span>搜索好友</span><input id="pastureFriendSearch" type="search" placeholder="昵称或 GID" autocomplete="off"></label><span id="pastureQuota" class="friend-muted">操作额度尚未加载</span></div>
+        <div id="pastureFriendList" class="friend-list pasture-friend-list"><div class="muted-empty">尚未读取牧场好友。</div></div>
+        <section id="pasturePreview" class="friend-preview hidden" aria-labelledby="pasturePreviewTitle"><div class="friends-heading"><div><h3 id="pasturePreviewTitle">好友牧场预览</h3><p id="pasturePreviewStatus"></p></div><button id="pasturePreviewClose" class="btn btn-ghost">关闭预览</button></div><p class="preview-returned">这是按好友 GID 读取的只读缓存预览，不改变自家牧场的操作目标。</p><div id="pasturePreviewRanches" class="ranch-grid"></div></section>
+      </section>
+        </section>
+        <section class="route-page" data-page="settings" aria-labelledby="settingsPageTitle" hidden>
+          <div class="page-intro"><div><h1 id="settingsPageTitle">优先设置</h1><p>保存种植、饲养顺序与购买授权；定时托管在各场景页面设置。切换页面不会丢失未保存的编辑。</p></div></div>
+      <section class="panel priorities-panel" aria-labelledby="prioritiesTitle">
+        <div class="friends-heading"><div><h2 id="prioritiesTitle">种植与饲养优先设置</h2><p class="friend-muted">严格按保存的顺序补种、补栏；库存为 0 的优先项会保留。定时任务使用已保存设置。</p></div><span id="preferencesStatus" class="settings-status" role="status">等待加载设置</span></div>
+        <div class="priority-columns">
+          <div class="priority-group"><h3>农场种子</h3><div class="priority-add"><select id="seedPrioritySelect" aria-label="添加优先种子"></select><button id="seedPriorityAdd" class="btn btn-ghost">添加</button></div><ol id="seedPriorityList" class="priority-list"></ol><label class="check-line"><input id="seedFallback" type="checkbox">库存不足时允许使用其它有库存种子</label><div class="priority-footer"><button id="saveSeedPreferences" class="btn btn-primary">保存种子优先设置</button><button class="btn btn-accent" data-command="plant-priority">按已保存优先级种植</button></div></div>
+          <div class="priority-group"><h3>牧场动物</h3><div class="priority-add"><select id="animalPrioritySelect" aria-label="添加优先动物"></select><button id="animalPriorityAdd" class="btn btn-ghost">添加</button></div><ol id="animalPriorityList" class="priority-list"></ol><label class="check-line"><input id="animalFallback" type="checkbox">库存不足时允许使用其它有库存动物</label><label class="check-line purchase-consent"><input id="allowAnimalPurchase" type="checkbox">补栏时允许自动购买动物</label><label class="budget-line">单周期购买预算 <input id="maxAnimalSpendPerCycle" type="number" min="0" max="1000000" step="1" value="0"><span>金券</span></label><p class="friend-muted">自动购买默认关闭；开启后仍受预算、解锁和容量限制。手动购买独立执行。</p><div class="priority-footer"><button id="saveAnimalPreferences" class="btn btn-primary">保存动物优先设置</button></div></div>
+        </div>
+      </section>
+        </section>
+      </main>
+      <aside id="activitySidebar" class="activity-sidebar" aria-label="实时日志与任务">
+        <header class="activity-heading"><strong>运行动态</strong><button id="activityClose" class="btn btn-ghost" aria-label="关闭日志侧栏">关闭</button></header>
+        <section class="panel log-panel"><div class="panel-title"><h2 id="activityTitle">农场任务与日志</h2><span class="activity-counts"><span id="jobCount">0 条任务</span><span id="logHint">实时</span></span></div><div id="logsList" class="logs-list" tabindex="0" aria-label="任务与运行日志列表"><div class="muted-empty">暂无日志</div></div></section>
+      </aside>
+    </div>
+    <button id="activityBackdrop" class="activity-backdrop" aria-label="关闭日志侧栏" tabindex="-1" hidden></button>
+    <footer><span>QQ 农场控制台</span><span>切换页面不影响正在运行的任务 · 定时需主动开启</span></footer>
+  </div>
+  <script src="/navigation.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

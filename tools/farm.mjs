@@ -6,9 +6,15 @@ import { readFileSync } from 'node:fs';
 
 // ==================== protobuf 原语 ====================
 export function readVarint(b, p) {
-  let r = 0n, s = 0n, byte;
-  do { byte = b[p++]; r |= BigInt(byte & 0x7f) << s; s += 7n; } while (byte & 0x80);
-  return [r, p];
+  let r = 0n;
+  for (let i = 0; i < 10; i++) {
+    if (p >= b.length) throw new Error('truncated protobuf varint');
+    const byte = b[p++];
+    if (i === 9 && byte > 1) throw new Error('protobuf varint overflow');
+    r |= BigInt(byte & 0x7f) << BigInt(i * 7);
+    if (!(byte & 0x80)) return [r, p];
+  }
+  throw new Error('invalid protobuf varint');
 }
 
 export function parse(buf, start = 0, end = buf.length) {
@@ -17,11 +23,14 @@ export function parse(buf, start = 0, end = buf.length) {
   while (p < end) {
     let tag; [tag, p] = readVarint(buf, p);
     const no = Number(tag >> 3n), wire = Number(tag & 7n);
+    if (no < 1 || no > 536870911) throw new Error('invalid protobuf field');
+    if ((wire === 1 && p + 8 > end) || (wire === 5 && p + 4 > end)) throw new Error('truncated protobuf fixed field');
     if (wire === 0) { let v; [v, p] = readVarint(buf, p); out.push({ no, wire, v }); }
     else if (wire === 1) { out.push({ no, wire, v: buf.subarray(p, p + 8) }); p += 8; }
     else if (wire === 2) {
       let len; [len, p] = readVarint(buf, p);
       const L = Number(len);
+      if (!Number.isSafeInteger(L) || p + L > end) throw new Error('truncated protobuf bytes');
       out.push({ no, wire, v: buf.subarray(p, p + L) });
       p += L;
     }
@@ -140,6 +149,7 @@ export function decodePlantInfo(bs, nowSec) {
     fruitNum: num(pi, 11),
     weedOwners: repeatedInts(pi, 12),
     insectOwners: repeatedInts(pi, 13),
+    stealers: repeatedInts(pi, 14),
     growSec: num(pi, 15),
     stealable: num(pi, 16) !== 0,
     leftFruitNum: num(pi, 18),
@@ -194,7 +204,7 @@ export function decodeBagReply(buf) {
   if (!buf || !buf.length) return { items: [], capacity: 0, usedSlots: 0, empty: true };
   const r = parse(buf);
   const bagBs = field(r, 1);
-  if (!bagBs) return { items: [], capacity: 0, usedSlots: 0 };
+  if (!bagBs) return { items: [], capacity: 0, usedSlots: 0, empty: true };
   const bag = parse(bagBs);
   const items = fields(bag, 1).map(bs => {
     const it = parse(bs);

@@ -23,3 +23,23 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Local game captures, account state, and generated artifacts
+*.har
+*.pcap
+*.pcapng
+/out/
+/ref/
+/dist/
+/web/data/
+/node_modules/
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+__pycache__/
+*.pyc
+
+# Local CLI configuration and captured shop catalogue
+/config.json
